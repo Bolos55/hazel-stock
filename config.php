@@ -1,64 +1,65 @@
 <?php
-// config.php - Database Configuration and Global Settings
+// ================================
+// config.php (PRODUCTION READY)
+// ================================
 
-// Database Configuration
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'hazel_stock');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
-define('DB_CHARSET', 'utf8mb4');
-
-// Timezone Configuration
 date_default_timezone_set('Asia/Bangkok');
 
-// Application Settings
+/* ================= DATABASE ENV ================= */
+$DB_HOST = $_ENV['DB_HOST'] ?? null;
+$DB_PORT = $_ENV['DB_PORT'] ?? null;
+$DB_NAME = $_ENV['DB_NAME'] ?? null;
+$DB_USER = $_ENV['DB_USER'] ?? null;
+$DB_PASS = $_ENV['DB_PASS'] ?? null;
+
+if (!$DB_HOST || !$DB_PORT || !$DB_NAME || !$DB_USER) {
+    die('❌ Database environment variables not set');
+}
+
+/* ================= APP SETTINGS ================= */
 define('PHOTOS_DIR', __DIR__ . '/stock-photos');
 define('EXCEL_DIR', __DIR__ . '/excel-exports');
 define('MAX_PHOTO_SIZE', 5 * 1024 * 1024); // 5MB
-define('ALLOWED_PHOTO_TYPES', ['image/jpeg', 'image/jpg', 'image/png']);
+define('ALLOWED_PHOTO_TYPES', ['image/jpeg', 'image/png']);
 
-// Create necessary directories
-if (!file_exists(PHOTOS_DIR)) {
-    mkdir(PHOTOS_DIR, 0755, true);
-}
-if (!file_exists(EXCEL_DIR)) {
-    mkdir(EXCEL_DIR, 0755, true);
-}
+/* ================= CREATE DIR (SAFE) ================= */
+@mkdir(PHOTOS_DIR, 0755, true);
+@mkdir(EXCEL_DIR, 0755, true);
 
-// Database Connection Class
+/* ================= DATABASE CLASS ================= */
 class Database {
     private static $instance = null;
     private $conn;
-    
+
     private function __construct() {
-        try {
-            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-            ];
-            $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
-        } catch(PDOException $e) {
-            die("Connection failed: " . $e->getMessage());
-        }
+        global $DB_HOST, $DB_PORT, $DB_NAME, $DB_USER, $DB_PASS;
+
+        $dsn = "mysql:host={$DB_HOST};port={$DB_PORT};dbname={$DB_NAME};charset=utf8mb4";
+
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+        ];
+
+        $this->conn = new PDO($dsn, $DB_USER, $DB_PASS, $options);
     }
-    
+
     public static function getInstance() {
         if (self::$instance === null) {
             self::$instance = new self();
         }
         return self::$instance;
     }
-    
+
     public function getConnection() {
         return $this->conn;
     }
 }
 
-// Utility Functions
-function jsonResponse($data, $statusCode = 200) {
-    http_response_code($statusCode);
+/* ================= HELPERS ================= */
+function jsonResponse($data, $status = 200) {
+    http_response_code($status);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
@@ -70,9 +71,6 @@ function getCurrentDate() {
 
 function getTodayPhotoDir() {
     $dir = PHOTOS_DIR . '/' . getCurrentDate();
-    if (!file_exists($dir)) {
-        mkdir($dir, 0755, true);
-    }
+    @mkdir($dir, 0755, true);
     return $dir;
 }
-?>
