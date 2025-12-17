@@ -1,5 +1,57 @@
-/vendor/
-/stock-photos/
-/excel/
+# Git Ignore File for Restaurant Stock System
+
+# Environment Variables
 .env
+.env.local
+.env.production
+
+# Composer
+/vendor/
+composer.phar
+
+# Logs
+/logs/*.log
+*.log
+
+# Stock Photos
+/stock-photos/*
+!/stock-photos/.gitkeep
+
+# Excel Exports
+/excel-exports/*
+!/excel-exports/.gitkeep
+
+# OS Files
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+*.bak
+*.cache
+
+# Database Backups
+*.sql.gz
+*.sql.zip
+backup/
+
+# Node modules (if using any frontend build tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Test Files (except test_db.php)
+test*.php
+!test_db.php
