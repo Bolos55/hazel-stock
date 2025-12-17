@@ -1,0 +1,5 @@
+/vendor/
+/stock-photos/
+/excel/
+.env
+.DS_Store

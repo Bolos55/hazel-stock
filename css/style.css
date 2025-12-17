@@ -1,0 +1,502 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #FAF7F2;
+    min-height: 100vh;
+    padding: 0;
+    color: #333;
+    -webkit-font-smoothing: antialiased;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: #f5f5f5;
+
+    flex: 1;
+}
+
+/* Header */
+.app-header {
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E5E5;
+}
+
+
+
+.app-header h1 {
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: 2px;
+}
+
+.app-header h1 {
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: #C4161C;
+}
+
+/* Hazel Brand Header */
+.hazel-header {
+    background: #ffffff;
+    padding: 20px 16px 16px;
+    text-align: center;
+}
+
+.hazel-logo {
+    max-width: 180px;   /* คุมขนาดโลโก้ */
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 8px;
+}
+
+.hazel-subtitle {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: #222;
+    margin-bottom: 10px;
+}
+
+/* Employee Section */
+.employee-section {
+    padding: 30px 20px;
+}
+
+.employee-card {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.employee-card label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.employee-card input {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    transition: border-color 0.3s;
+}
+
+.employee-card input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Buttons */
+.btn-primary, .btn-submit {
+    width: 100%;
+    padding: 18px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: #C4161C;
+    color: #fff;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-submit {
+    background: #C4161C;
+    box-shadow: 0 4px 12px rgba(196, 22, 28, 0.3);
+}
+
+
+.btn-submit:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.btn-submit:not(:disabled):active {
+    transform: scale(0.98);
+}
+
+/* Stock Section */
+.stock-section {
+    padding-bottom: 100px;
+}
+
+.employee-info {
+    background: white;
+    padding: 16px 20px;
+    text-align: center;
+    font-size: 16px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.progress-card {
+    background: white;
+    padding: 20px;
+    margin: 20px 20px 10px 20px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.progress-stats {
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.progress-bar {
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #C4161C;
+    border-radius: 6px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+/* Stock List */
+.stock-list {
+    padding: 0 20px;
+}
+
+.stock-item {
+    background: white;
+    padding: 20px;
+    margin-bottom: 16px;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.stock-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.material-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.photo-status {
+    font-size: 24px;
+}
+
+.stock-item-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.btn-quantity {
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 12px;
+    background: #1F1F1F;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: none;
+}
+
+.btn-quantity:active {
+    transform: scale(0.95);
+}
+
+.quantity-display {
+    min-width: 100px;
+    text-align: center;
+}
+
+.quantity-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+}
+
+.quantity-unit {
+    font-size: 14px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.btn-take-photo {
+    padding: 14px 24px;
+    background: #6B6B6B;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 2px 6px rgba(255, 152, 0, 0.3);
+}
+
+.btn-take-photo:active {
+    transform: scale(0.98);
+}
+
+.btn-take-photo.has-photo {
+    background: #2E7D32;
+}
+
+/* Submitted Section */
+.submitted-section {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.submitted-card {
+    background: white;
+    padding: 40px 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.success-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+}
+
+.submitted-card h2 {
+    font-size: 24px;
+    color: #4caf50;
+    margin-bottom: 12px;
+}
+
+.submitted-card p {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.submitted-info {
+    background: #f5f5f5;
+    padding: 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #666;
+}
+
+/* Camera Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 600px;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    background: #C4161C;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+}
+
+.modal-header h3 {
+    font-size: 18px;
+}
+
+.btn-close {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+}
+
+.camera-container {
+    flex: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+}
+
+#cameraVideo, #capturedImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+#cameraCanvas {
+    display: none;
+}
+
+.camera-controls {
+    background: #1a1a1a;
+    padding: 20px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-camera {
+    flex: 1;
+    padding: 18px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+#btnCapture {
+    background: #ff9800;
+    color: white;
+}
+
+#btnRetake {
+    background: #f44336;
+    color: white;
+}
+
+#btnConfirm {
+    background: #4caf50;
+    color: white;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    color: white;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Utility Classes */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+    .quantity-controls {
+        gap: 10px;
+    }
+    
+    .btn-quantity {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+    }
+    
+    .quantity-value {
+        font-size: 24px;
+    }
+
+}
+
+ /* Footer */
+.app-footer {
+    background: #fafafa;
+    border-top: 1px solid #eee;
+    padding: 14px 10px;
+    text-align: center;
+}
+
+.footer-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 12px;
+    color: #777;
+}
+
+.footer-profile img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.footer-profile strong {
+    color: #444;
+    letter-spacing: 0.5px;
+}
