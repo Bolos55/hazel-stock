@@ -104,7 +104,7 @@
 
 
 
-    <script src="js/app.js"></script>
+    <script src="/js/app.js"></script>
 
     <script>
         document.getElementById('year').textContent = new Date().getFullYear();
