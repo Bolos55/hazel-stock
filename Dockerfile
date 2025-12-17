@@ -1,8 +1,8 @@
-# ใช้ PHP 8.1 พร้อม Apache
-FROM php:8.1-apache
+FROM php:8.2-apache
 
-# 1. ติดตั้ง Dependencies ที่จำเป็นสำหรับ Extensions
-# เพิ่ม libonig-dev (สำหรับ mbstring) และ libpng/libjpeg (สำหรับ gd)
+# -----------------------------
+# System dependencies
+# -----------------------------
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -12,40 +12,40 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     zip \
     unzip \
+    git \
     curl \
-    cron \
-    && rm -rf /var/lib/apt/lists/*
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        gd \
+        zip \
+        xml \
+        mbstring
 
-# 2. Configure และติดตั้ง PHP Extensions (แก้ปัญหา Build Failed)
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql gd zip xml mbstring
+# -----------------------------
+# Install Composer (IMPORTANT)
+# -----------------------------
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# 3. เปิดใช้งาน Apache Modules
-RUN a2enmod rewrite headers
+# Enable Apache rewrite
+RUN a2enmod rewrite
 
-# 4. ติดตั้ง Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# 5. ตั้งค่า Working Directory และก๊อปปี้ไฟล์
 WORKDIR /var/www/html
-COPY . /var/www/html/
 
-# 6. ติดตั้ง PHP Dependencies (ถ้ามีไฟล์ composer.json)
-RUN if [ -f "composer.json" ]; then composer install --no-dev --optimize-autoloader; fi
+# Copy source
+COPY . /var/www/html
 
-# 7. สร้างโฟลเดอร์และตั้งค่า Permissions
-RUN mkdir -p logs stock-photos excel-exports \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 775 logs stock-photos excel-exports
+# -----------------------------
+# Composer install (SAFE MODE)
+# -----------------------------
+RUN if [ -f composer.json ]; then \
+    composer install \
+    --no-dev \
+    --no-interaction \
+    --no-scripts \
+    --optimize-autoloader; \
+    fi
 
-# 8. ตั้งค่า PHP
-RUN { \
-    echo 'upload_max_filesize = 10M'; \
-    echo 'post_max_size = 12M'; \
-    echo 'memory_limit = 256M'; \
-    } > /usr/local/etc/php/conf.d/custom.ini
-
-# 9. Start Apache
-EXPOSE 80
-CMD ["apache2-foreground"]
+# Permissions
+RUN chown -R www-data:www-data /var/www/html
