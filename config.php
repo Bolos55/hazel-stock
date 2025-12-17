@@ -55,7 +55,13 @@ class Database {
 
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
-            die("❌ DB Connection failed: " . $e->getMessage());
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'DB Connection failed',
+                'error' => $e->getMessage()
+            ]);
+            exit;
         }
     }
 
