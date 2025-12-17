@@ -13,8 +13,13 @@ define('DB_USER', $_ENV['DB_USER'] ?? getenv('DB_USER'));
 define('DB_PASS', $_ENV['DB_PASS'] ?? getenv('DB_PASS'));
 define('DB_CHARSET', 'utf8mb4');
 
-if (!DB_HOST || !DB_NAME || !DB_USER) {
-    die('❌ Database environment variables not set');
+if (!$DB_HOST || !$DB_PORT || !$DB_NAME || !$DB_USER) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database environment variables not set'
+    ]);
+    exit;
 }
 
 /* ================= APP SETTINGS ================= */
