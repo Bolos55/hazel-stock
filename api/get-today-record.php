@@ -1,24 +1,21 @@
 <?php
-require_once __DIR__ . '/../config.php';
+require_once '../config.php';
 
-try {
-    $db = Database::getInstance()->getConnection();
-    $today = date('Y-m-d');
+$db = Database::getInstance()->getConnection();
+$today = date('Y-m-d');
 
-    $stmt = $db->prepare("
-        SELECT COUNT(*) 
-        FROM daily_stock_records 
-        WHERE record_date = :today
-    ");
-    $stmt->execute(['today' => $today]);
+$stmt = $db->prepare("
+    SELECT employee_name, submitted_at
+    FROM daily_stock_records
+    WHERE record_date = :d
+    LIMIT 1
+");
+$stmt->execute(['d' => $today]);
 
-    jsonResponse([
-        'success' => true,
-        'exists' => $stmt->fetchColumn() > 0
-    ]);
-} catch (Throwable $e) {
-    jsonResponse([
-        'success' => false,
-        'message' => $e->getMessage()
-    ], 500);
-}
+$row = $stmt->fetch();
+
+jsonResponse([
+    'success' => true,
+    'exists' => !!$row,
+    'record' => $row
+]);
