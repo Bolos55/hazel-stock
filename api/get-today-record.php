@@ -1,11 +1,12 @@
 <?php
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-require_once '../config.php';
+require_once __DIR__ . '/../config.php';
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = Database::getInstance()->getConnection();
@@ -13,18 +14,23 @@ try {
     $today = date('Y-m-d');
 
     $stmt = $db->prepare("
-        SELECT COUNT(*) AS total
+        SELECT employee_id, created_at
         FROM daily_stock_records
         WHERE record_date = :today
+        LIMIT 1
     ");
     $stmt->execute(['today' => $today]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $record = $stmt->fetch(PDO::FETCH_ASSOC);
 
     echo json_encode([
         'success' => true,
-        'exists' => ($row['total'] > 0),
+        'exists'  => $record ? true : false,
+        'record'  => $record ? [
+            'employee_name' => 'มีการบันทึกแล้ว',
+            'submitted_at'  => $record['created_at']
+        ] : null,
         'date' => $today
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 
 } catch (Throwable $e) {
@@ -32,6 +38,6 @@ try {
     echo json_encode([
         'success' => false,
         'message' => $e->getMessage()
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
     exit;
 }
