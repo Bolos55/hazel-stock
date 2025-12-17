@@ -1,8 +1,4 @@
 <?php
-// ================================
-// config.php (PRODUCTION READY)
-// ================================
-
 date_default_timezone_set('Asia/Bangkok');
 
 /* ================= DATABASE ENV ================= */
@@ -13,8 +9,9 @@ define('DB_USER', $_ENV['DB_USER'] ?? getenv('DB_USER'));
 define('DB_PASS', $_ENV['DB_PASS'] ?? getenv('DB_PASS'));
 define('DB_CHARSET', 'utf8mb4');
 
-if (!$DB_HOST || !$DB_PORT || !$DB_NAME || !$DB_USER) {
+if (!DB_HOST || !DB_PORT || !DB_NAME || !DB_USER) {
     http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
         'success' => false,
         'message' => 'Database environment variables not set'
@@ -25,10 +22,9 @@ if (!$DB_HOST || !$DB_PORT || !$DB_NAME || !$DB_USER) {
 /* ================= APP SETTINGS ================= */
 define('PHOTOS_DIR', __DIR__ . '/stock-photos');
 define('EXCEL_DIR', __DIR__ . '/excel-exports');
-define('MAX_PHOTO_SIZE', 5 * 1024 * 1024); // 5MB
+define('MAX_PHOTO_SIZE', 5 * 1024 * 1024);
 define('ALLOWED_PHOTO_TYPES', ['image/jpeg', 'image/png']);
 
-/* ================= CREATE DIR (SAFE) ================= */
 @mkdir(PHOTOS_DIR, 0755, true);
 @mkdir(EXCEL_DIR, 0755, true);
 
@@ -48,14 +44,13 @@ class Database {
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
-
-                // ⭐ สำคัญสำหรับ Aiven (SSL)
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false
             ];
 
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
         } catch (PDOException $e) {
             http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
             echo json_encode([
                 'success' => false,
                 'message' => 'DB Connection failed',
@@ -83,14 +78,4 @@ function jsonResponse($data, $status = 200) {
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
-}
-
-function getCurrentDate() {
-    return date('Y-m-d');
-}
-
-function getTodayPhotoDir() {
-    $dir = PHOTOS_DIR . '/' . getCurrentDate();
-    @mkdir($dir, 0755, true);
-    return $dir;
 }
