@@ -4,6 +4,20 @@ FROM php:8.1-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
+    libzip-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libxml2-dev \
+    zlib1g-dev \
+    cron \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure GD extension
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+# 1. ติดตั้ง system dependencies ที่จำเป็น
+RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -13,18 +27,6 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql gd zip xml mbstring
-
-# Configure GD extension
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-
-# Install PHP extensions
-RUN docker-php-ext-install \
-    pdo \
-    pdo_mysql \
-    gd \
-    zip \
-    xml \
-    mbstring
 
 # Enable Apache modules
 RUN a2enmod rewrite headers
