@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>บันทึกสต็อกวัตถุดิบ</title>
-    <link rel="stylesheet" href="css/tailwind.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="font-thai bg-hazel-bg min-h-screen flex flex-col">
     <div class="app-container">
