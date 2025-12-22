@@ -3,29 +3,14 @@
     "description": "Restaurant Daily Stock Recording System with Photo Proof",
     "type": "project",
     "license": "proprietary",
-    "authors": [
-        {
-            "name": "Restaurant Stock Team",
-            "email": "support@restaurant.com"
-        }
-    ],
     "require": {
-        "php": ">=7.4",
+        "php": ">=8.0",
         "ext-pdo": "*",
         "ext-pdo_mysql": "*",
         "ext-gd": "*",
         "ext-mbstring": "*",
         "ext-zip": "*",
-        "ext-xml": "*",
         "phpoffice/phpspreadsheet": "^1.29"
-    },
-    "require-dev": {
-        "phpstan/phpstan": "^1.10"
-    },
-    "autoload": {
-        "files": [
-            "config.php"
-        ]
     },
     "config": {
         "optimize-autoloader": true,
@@ -36,9 +21,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "scripts": {
-        "test": "php test_db.php",
-        "export": "php cron/daily-excel-export.php"
-    }
+    "prefer-stable": true
 }

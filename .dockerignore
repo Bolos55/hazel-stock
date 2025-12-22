@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+HAZELPROJECT.md
+*.md
+
+# Development files
+.env
+.env.local
+.env.example
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Node modules (if any)
+node_modules/
+
+# Vendor (will be installed during build)
+vendor/
+
+# Generated files
+excel-exports/*
+stock-photos/*
+!stock-photos/.gitkeep
+!excel-exports/.gitkeep
