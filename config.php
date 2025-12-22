@@ -6,11 +6,11 @@
 date_default_timezone_set('Asia/Bangkok');
 
 /* ================= DATABASE ENV ================= */
-define('DB_HOST', getenv('DB_HOST'));
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_PORT', getenv('DB_PORT') ?: 3306);
-define('DB_NAME', getenv('DB_NAME'));
-define('DB_USER', getenv('DB_USER'));
-define('DB_PASS', getenv('DB_PASS'));
+define('DB_NAME', getenv('DB_NAME') ?: 'hazel_stock');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 define('DB_CHARSET', 'utf8mb4');
 
 /* ================= APP SETTINGS ================= */
@@ -22,30 +22,17 @@ define('ALLOWED_PHOTO_TYPES', ['image/jpeg', 'image/png']);
 /* ================= CREATE DIR (SAFE) ================= */
 @mkdir(PHOTOS_DIR, 0755, true);
 @mkdir(EXCEL_DIR, 0755, true);
-
-/* ====== CHECK ENV (สำคัญมาก) ====== */
-if (!DB_HOST || !DB_NAME || !DB_USER) {
-    http_response_code(500);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode([
-        'success' => false,
-        'message' => 'Database environment variables not set',
-        'debug' => [
-            'DB_HOST' => DB_HOST,
-            'DB_NAME' => DB_NAME,
-            'DB_USER' => DB_USER,
-            'DB_PORT' => DB_PORT
-        ]
-    ], JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
 /* ================= DATABASE CLASS ================= */
 class Database {
     private static $instance = null;
     private $conn;
 
     private function __construct() {
+        // Only try to connect if we have proper environment variables
+        if (!getenv('DB_HOST') || !getenv('DB_NAME') || !getenv('DB_USER')) {
+            throw new Exception('Database environment variables not properly set');
+        }
+        
         try {
             $dsn = sprintf(
                 "mysql:host=%s;port=%s;dbname=%s;charset=%s",
@@ -67,14 +54,7 @@ class Database {
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
 
         } catch (PDOException $e) {
-            http_response_code(500);
-            header('Content-Type: application/json; charset=utf-8');
-            echo json_encode([
-                'success' => false,
-                'message' => 'DB Connection failed',
-                'error' => $e->getMessage()
-            ], JSON_UNESCAPED_UNICODE);
-            exit;
+            throw new Exception('DB Connection failed: ' . $e->getMessage());
         }
     }
 
@@ -83,6 +63,7 @@ class Database {
             self::$instance = new self();
         }
         return self::$instance;
+    }
     }
 
     public function getConnection() {

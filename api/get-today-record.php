@@ -4,6 +4,7 @@ require_once '../config.php';
 header('Content-Type: application/json; charset=utf-8');
 
 try {
+    // Try to get database connection
     $db = Database::getInstance()->getConnection();
 
     $today = date('Y-m-d');
@@ -24,13 +25,17 @@ try {
         'total_records' => (int)$result['total']
     ]);
 
-} catch (Throwable $e) {
+} catch (Exception $e) {
+    // Handle database connection errors gracefully
     jsonResponse([
         'success' => false,
-        'message' => $e->getMessage(),
+        'message' => 'Database connection error',
+        'error' => $e->getMessage(),
         'debug' => [
             'file' => __FILE__,
-            'line' => __LINE__
+            'line' => __LINE__,
+            'db_host' => DB_HOST,
+            'db_name' => DB_NAME
         ]
     ], 500);
 }
