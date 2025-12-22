@@ -6,7 +6,14 @@
  */
 
 require_once dirname(__DIR__) . '/config.php';
-require_once dirname(__DIR__) . '/vendor/autoload.php'; // PhpSpreadsheet
+
+// Check if PhpSpreadsheet is available
+if (!file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
+    echo "PhpSpreadsheet not installed. Please run: composer install\n";
+    exit(1);
+}
+
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;

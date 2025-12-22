@@ -2,6 +2,14 @@
 ob_clean(); // ป้องกัน Excel พังจาก output แปลก
 
 require_once __DIR__ . '/../config.php';
+
+// Check if PhpSpreadsheet is available
+if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
+    http_response_code(500);
+    echo 'Error: PhpSpreadsheet not installed. Please run: composer install';
+    exit;
+}
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
