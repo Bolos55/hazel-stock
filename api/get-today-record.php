@@ -27,23 +27,10 @@ try {
 } catch (Throwable $e) {
     jsonResponse([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => $e->getMessage(),
+        'debug' => [
+            'file' => __FILE__,
+            'line' => __LINE__
+        ]
     ], 500);
-}
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    echo json_encode([
-        'success' => true,
-        'exists' => ($row['total'] > 0),
-        'date' => $today
-    ]);
-    exit;
-
-} catch (Throwable $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
-    exit;
 }

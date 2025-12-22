@@ -9,6 +9,16 @@
 /vendor/
 composer.phar
 
+# Node.js & Tailwind CSS
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Generated CSS (keep source files only)
+/css/tailwind.css
+
 # Logs
 /logs/*.log
 *.log
@@ -46,11 +56,6 @@ temp/
 *.sql.gz
 *.sql.zip
 backup/
-
-# Node modules (if using any frontend build tools)
-node_modules/
-npm-debug.log
-yarn-error.log
 
 # Test Files (except test_db.php)
 test*.php

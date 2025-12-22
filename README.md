@@ -10,6 +10,7 @@
 - 👥 จัดการข้อมูลพนักงาน
 - 📦 จัดการข้อมูลวัตถุดิบ
 - ⏰ ระบบ Cron Job สำหรับส่งออกอัตโนมัติ
+- 🎨 **Modern UI with Tailwind CSS**
 
 ## 🛠️ Installation
 
@@ -21,16 +22,33 @@ cd hazel-stock
 
 ### 2. Install Dependencies
 ```bash
+# PHP Dependencies
 composer install
+
+# Node.js Dependencies (for Tailwind CSS)
+npm install
 ```
 
-### 3. Database Setup
+### 3. Build CSS
+```bash
+# Build Tailwind CSS (production)
+npm run build
+
+# Or watch for changes (development)
+npm run build-css
+
+# Windows users can use batch files:
+build.bat       # Build once
+watch.bat       # Watch for changes
+```
+
+### 4. Database Setup
 ```bash
 # Import database schema
 mysql -u username -p database_name < database.sql
 ```
 
-### 4. Environment Variables
+### 5. Environment Variables
 สร้างไฟล์ `.env` หรือตั้งค่า environment variables:
 
 ```env
@@ -41,35 +59,60 @@ DB_USER=your-username
 DB_PASS=your-password
 ```
 
-### 5. Test Connection
+### 6. Test Connection
 เปิด `http://your-domain/test_db.php` เพื่อทดสอบการเชื่อมต่อฐานข้อมูล
+
+## 🎨 Tailwind CSS Setup
+
+โปรเจกต์นี้ใช้ Tailwind CSS สำหรับ styling:
+
+### Development
+```bash
+# Watch for changes and rebuild CSS automatically
+npm run build-css
+# หรือ
+watch.bat
+```
+
+### Production
+```bash
+# Build minified CSS for production
+npm run build
+# หรือ
+build.bat
+```
+
+### Customization
+แก้ไข `tailwind.config.js` เพื่อปรับแต่ง theme:
+- สี Hazel brand: `hazel-red`, `hazel-bg`
+- Font: Thai fonts (Prompt, Sarabun)
+- Max width: `max-w-app` (600px)
 
 ## 📁 Project Structure
 
 ```
 hazel-stock/
 ├── api/                    # API endpoints
-│   ├── export-daily-stock.php
-│   ├── export-excel.php
-│   ├── generate-excel.php
-│   ├── get-materials.php
-│   ├── get-today-record.php
-│   ├── submit-stock.php
-│   └── upload-photo.php
 ├── assets/                 # Static assets
 ├── cron/                   # Cron job scripts
-│   └── daily-excel-export.php
-├── css/                    # Stylesheets
-├── excel-exports/          # Generated Excel files
-├── js/                     # JavaScript files
-├── materials/              # Material management
-│   └── add.php
-├── stock-photos/           # Uploaded photos
-├── vendor/                 # Composer dependencies
-├── config.php              # Database configuration
-├── database.sql            # Database schema
-├── index.php               # Main application
-└── test_db.php            # Database connection test
+├── css/
+│   ├── style.css          # Original CSS (deprecated)
+│   └── tailwind.css       # Generated Tailwind CSS
+├── src/
+│   └── input.css          # Tailwind source file
+├── js/                    # JavaScript files
+├── materials/             # Material management
+├── stock-photos/          # Uploaded photos
+├── vendor/                # Composer dependencies
+├── node_modules/          # Node.js dependencies
+├── package.json           # Node.js dependencies
+├── tailwind.config.js     # Tailwind configuration
+├── build.bat              # Windows build script
+├── watch.bat              # Windows watch script
+├── config.php             # Database configuration
+├── database.sql           # Database schema
+├── index.php              # Main application
+└── test_db.php           # Database connection test
 ```
 
 ## 🔧 API Endpoints

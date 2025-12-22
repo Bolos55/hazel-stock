@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply w-full py-4 px-6 text-lg font-semibold bg-hazel-red text-white rounded-xl transition-all duration-300 hover:bg-red-700 active:scale-95;
+  }
+  
+  .btn-submit {
+    @apply w-full py-4 px-6 text-lg font-semibold bg-hazel-red text-white rounded-xl shadow-lg transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:shadow-none active:scale-95;
+  }
+  
+  .btn-quantity {
+    @apply w-12 h-12 bg-gray-800 text-white text-xl rounded-xl transition-all duration-200 active:scale-95;
+  }
+  
+  .btn-take-photo {
+    @apply px-6 py-3 bg-gray-600 text-white rounded-xl font-semibold transition-all duration-300 active:scale-98;
+  }
+  
+  .btn-take-photo.has-photo {
+    @apply bg-green-700;
+  }
+  
+  .card {
+    @apply bg-white rounded-2xl shadow-lg;
+  }
+  
+  .input-field {
+    @apply w-full p-4 text-lg border-2 border-gray-200 rounded-xl transition-colors duration-300 focus:outline-none focus:border-blue-500;
+  }
+}
+
+@layer utilities {
+  .app-container {
+    @apply max-w-app mx-auto min-h-screen bg-gray-100 flex flex-col;
+  }
+}
