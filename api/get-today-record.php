@@ -1,21 +1,49 @@
 <?php
 require_once '../config.php';
 
-$db = Database::getInstance()->getConnection();
-$today = date('Y-m-d');
+header('Content-Type: application/json; charset=utf-8');
 
-$stmt = $db->prepare("
-    SELECT employee_name, submitted_at
-    FROM daily_stock_records
-    WHERE record_date = :d
-    LIMIT 1
-");
-$stmt->execute(['d' => $today]);
+try {
+    $db = Database::getInstance()->getConnection();
 
-$row = $stmt->fetch();
+    $today = date('Y-m-d');
 
-jsonResponse([
-    'success' => true,
-    'exists' => !!$row,
-    'record' => $row
-]);
+    $stmt = $db->prepare("
+        SELECT COUNT(*) AS total
+        FROM daily_stock_records
+        WHERE record_date = :today
+    ");
+    $stmt->execute(['today' => $today]);
+
+    $result = $stmt->fetch();
+
+    jsonResponse([
+        'success' => true,
+        'date' => $today,
+        'has_records' => $result['total'] > 0,
+        'total_records' => (int)$result['total']
+    ]);
+
+} catch (Throwable $e) {
+    jsonResponse([
+        'success' => false,
+        'message' => $e->getMessage()
+    ], 500);
+}
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    echo json_encode([
+        'success' => true,
+        'exists' => ($row['total'] > 0),
+        'date' => $today
+    ]);
+    exit;
+
+} catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
+    exit;
+}

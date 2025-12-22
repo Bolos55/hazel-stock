@@ -18,7 +18,7 @@ try {
     $today = getCurrentDate();
     $db = Database::getInstance()->getConnection();
     
-    // Fetch today's stock records with material details
+    // Fetch today's stock records with material details - แก้ไข column names
     $stmt = $db->prepare("
         SELECT 
             dsr.record_date,
@@ -26,10 +26,11 @@ try {
             dsr.remaining_quantity,
             rm.unit,
             dsr.photo_path,
-            dsr.employee_name,
+            e.full_name as employee_name,
             dsr.submitted_at
         FROM daily_stock_records dsr
         INNER JOIN raw_materials rm ON dsr.material_id = rm.id
+        LEFT JOIN employees e ON dsr.employee_id = e.id
         WHERE dsr.record_date = ?
         ORDER BY rm.display_order ASC, rm.id ASC
     ");
@@ -133,13 +134,15 @@ try {
         $sheet->setCellValue("C{$row}", $record['remaining_quantity']);
         $sheet->setCellValue("D{$row}", $record['unit']);
         $sheet->setCellValue("E{$row}", $photoUrl);
-        $sheet->setCellValue("F{$row}", $record['employee_name']);
+        $sheet->setCellValue("F{$row}", $record['employee_name'] ?? '-');
         $sheet->setCellValue("G{$row}", $thaiTime);
         
         // Make photo URL clickable
-        $sheet->getCell("E{$row}")->getHyperlink()->setUrl($photoUrl);
-        $sheet->getStyle("E{$row}")->getFont()->getColor()->setRGB('0000FF');
-        $sheet->getStyle("E{$row}")->getFont()->setUnderline(true);
+        if (!empty($record['photo_path'])) {
+            $sheet->getCell("E{$row}")->getHyperlink()->setUrl($photoUrl);
+            $sheet->getStyle("E{$row}")->getFont()->getColor()->setRGB('0000FF');
+            $sheet->getStyle("E{$row}")->getFont()->setUnderline(true);
+        }
         
         // Apply data styling
         $sheet->getStyle("A{$row}:G{$row}")->applyFromArray($dataStyle);
@@ -195,4 +198,3 @@ try {
     
     exit(1);
 }
-?>

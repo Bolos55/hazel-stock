@@ -15,11 +15,16 @@ try {
     $db = Database::getInstance()->getConnection();
     $date = $_GET['date'] ?? date('Y-m-d');
 
+    // เพิ่ม date validation
+    if (!validateDate($date)) {
+        throw new Exception('Invalid date format. Use YYYY-MM-DD');
+    }
+
     /* ================= วันนี้ ================= */
     $stmt = $db->prepare("
         SELECT 
             ds.material_id,
-            ds.quantity_remaining,
+            ds.remaining_quantity,
             ds.photo_path,
             m.material_name,
             m.unit,
@@ -28,7 +33,7 @@ try {
         JOIN raw_materials m ON ds.material_id = m.id
         JOIN employees e ON ds.employee_id = e.id
         WHERE ds.record_date = ?
-        ORDER BY m.id
+        ORDER BY m.display_order ASC, m.id ASC
     ");
     $stmt->execute([$date]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -40,7 +45,7 @@ try {
     /* ================= เมื่อวาน ================= */
     $yesterday = (new DateTime($date))->modify('-1 day')->format('Y-m-d');
     $prevStmt = $db->prepare("
-        SELECT material_id, quantity_remaining
+        SELECT material_id, remaining_quantity
         FROM daily_stock_records
         WHERE record_date = ?
     ");
@@ -48,7 +53,7 @@ try {
 
     $yesterdayData = [];
     foreach ($prevStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-        $yesterdayData[(int)$r['material_id']] = (float)$r['quantity_remaining'];
+        $yesterdayData[(int)$r['material_id']] = (float)$r['remaining_quantity'];
     }
 
     /* ================= Spreadsheet ================= */
@@ -94,7 +99,7 @@ try {
 
     foreach ($rows as $r) {
         $materialId = (int)$r['material_id'];
-        $todayQty = (float)$r['quantity_remaining'];
+        $todayQty = (float)$r['remaining_quantity'];
         $yesterdayQty = $yesterdayData[$materialId] ?? null;
 
         $sheet->setCellValue("A{$rowNum}", $i++);
@@ -114,17 +119,21 @@ try {
         $photoPath = __DIR__ . '/../stock-photos/' . ltrim($r['photo_path'], '/');
 
         if (!empty($r['photo_path']) && is_file($photoPath)) {
-            $drawing = new Drawing();
-            $drawing->setName($r['material_name']);
-            $drawing->setDescription('Stock Photo');
-            $drawing->setPath($photoPath);
-            $drawing->setHeight(80);
-            $drawing->setCoordinates("F{$rowNum}");
-            $drawing->setOffsetX(8);
-            $drawing->setOffsetY(6);
-            $drawing->setWorksheet($sheet);
+            try {
+                $drawing = new Drawing();
+                $drawing->setName($r['material_name']);
+                $drawing->setDescription('Stock Photo');
+                $drawing->setPath($photoPath);
+                $drawing->setHeight(80);
+                $drawing->setCoordinates("F{$rowNum}");
+                $drawing->setOffsetX(8);
+                $drawing->setOffsetY(6);
+                $drawing->setWorksheet($sheet);
 
-            $sheet->getRowDimension($rowNum)->setRowHeight(75);
+                $sheet->getRowDimension($rowNum)->setRowHeight(75);
+            } catch (Exception $e) {
+                $sheet->setCellValue("F{$rowNum}", 'รูปเสียหาย');
+            }
         } else {
             $sheet->setCellValue("F{$rowNum}", 'ไม่มีรูป');
         }

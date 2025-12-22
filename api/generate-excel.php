@@ -6,7 +6,6 @@
 
 require_once dirname(__DIR__) . '/config.php';
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../config.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -18,8 +17,9 @@ try {
     // วันที่ (YYYY-MM-DD)
     $date = $_GET['date'] ?? getCurrentDate();
 
-    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-        die('Invalid date format (YYYY-MM-DD)');
+    // เพิ่ม date validation
+    if (!validateDate($date)) {
+        throw new Exception('Invalid date format (YYYY-MM-DD)');
     }
 
     $pdo = Database::getInstance()->getConnection();
@@ -32,7 +32,7 @@ try {
             d.remaining_quantity,
             r.unit,
             d.photo_path,
-            e.employee_name,
+            e.full_name as employee_name,
             d.submitted_at
         FROM daily_stock_records d
         JOIN raw_materials r ON d.material_id = r.id
@@ -44,7 +44,7 @@ try {
     $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (!$records) {
-        die("No stock records found for {$date}");
+        throw new Exception("No stock records found for {$date}");
     }
 
     /* ================= Excel ================= */
@@ -131,5 +131,5 @@ try {
 
 } catch (Throwable $e) {
     http_response_code(500);
-    echo "Excel error: " . $e->getMessage();
+    echo "Excel error: " . htmlspecialchars($e->getMessage());
 }

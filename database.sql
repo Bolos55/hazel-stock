@@ -1,85 +1,84 @@
-<?php
-// ================================
-// config.php (PRODUCTION READY)
-// ================================
+-- ================================
+-- HAZEL STOCK MANAGEMENT DATABASE SCHEMA
+-- ================================
 
-date_default_timezone_set('Asia/Bangkok');
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
-/* ================= DATABASE ENV ================= */
-define('DB_HOST', $_ENV['DB_HOST'] ?? getenv('DB_HOST'));
-define('DB_PORT', $_ENV['DB_PORT'] ?? getenv('DB_PORT') ?? 3306);
-define('DB_NAME', $_ENV['DB_NAME'] ?? getenv('DB_NAME'));
-define('DB_USER', $_ENV['DB_USER'] ?? getenv('DB_USER'));
-define('DB_PASS', $_ENV['DB_PASS'] ?? getenv('DB_PASS'));
-define('DB_CHARSET', 'utf8mb4');
+-- ================= EMPLOYEES TABLE ================= 
+CREATE TABLE IF NOT EXISTS `employees` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `full_name` varchar(255) NOT NULL COMMENT 'ชื่อเต็มพนักงาน',
+    `employee_name` varchar(255) NOT NULL COMMENT 'ชื่อเรียกพนักงาน',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_full_name` (`full_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-if (!DB_HOST || !DB_NAME || !DB_USER) {
-    die('❌ Database environment variables not set');
-}
+-- ================= RAW MATERIALS TABLE ================= 
+CREATE TABLE IF NOT EXISTS `raw_materials` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `material_code` varchar(50) NOT NULL COMMENT 'รหัสวัตถุดิบ',
+    `material_name` varchar(255) NOT NULL COMMENT 'ชื่อวัตถุดิบ',
+    `unit` varchar(50) NOT NULL COMMENT 'หน่วยนับ',
+    `current_stock` decimal(10,2) DEFAULT 0.00 COMMENT 'สต็อกปัจจุบัน',
+    `display_order` int(11) DEFAULT 0 COMMENT 'ลำดับการแสดงผล',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_material_code` (`material_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/* ================= APP SETTINGS ================= */
-define('PHOTOS_DIR', __DIR__ . '/stock-photos');
-define('EXCEL_DIR', __DIR__ . '/excel-exports');
-define('MAX_PHOTO_SIZE', 5 * 1024 * 1024); // 5MB
-define('ALLOWED_PHOTO_TYPES', ['image/jpeg', 'image/png']);
+-- ================= DAILY STOCK RECORDS TABLE ================= 
+CREATE TABLE IF NOT EXISTS `daily_stock_records` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `record_date` date NOT NULL COMMENT 'วันที่บันทึก',
+    `employee_id` int(11) NOT NULL COMMENT 'รหัสพนักงาน',
+    `material_id` int(11) NOT NULL COMMENT 'รหัสวัตถุดิบ',
+    `remaining_quantity` decimal(10,2) NOT NULL COMMENT 'จำนวนคงเหลือ',
+    `photo_path` varchar(255) DEFAULT NULL COMMENT 'path รูปภาพ',
+    `submitted_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'เวลาที่บันทึก',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_daily_record` (`record_date`, `material_id`),
+    KEY `idx_record_date` (`record_date`),
+    KEY `idx_employee_id` (`employee_id`),
+    KEY `idx_material_id` (`material_id`),
+    CONSTRAINT `fk_daily_stock_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_daily_stock_material` FOREIGN KEY (`material_id`) REFERENCES `raw_materials` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/* ================= CREATE DIR (SAFE) ================= */
-@mkdir(PHOTOS_DIR, 0755, true);
-@mkdir(EXCEL_DIR, 0755, true);
+-- ================= EXCEL EXPORT LOG TABLE ================= 
+CREATE TABLE IF NOT EXISTS `excel_export_log` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `export_date` date NOT NULL COMMENT 'วันที่ export',
+    `file_path` varchar(255) DEFAULT NULL COMMENT 'path ไฟล์ Excel',
+    `records_count` int(11) DEFAULT 0 COMMENT 'จำนวน records',
+    `status` varchar(50) DEFAULT NULL COMMENT 'สถานะ (success/failed)',
+    `error_message` text DEFAULT NULL COMMENT 'ข้อความ error',
+    `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_export_date` (`export_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-/* ================= DATABASE CLASS ================= */
-class Database {
-    private static $instance = null;
-    private $conn;
+-- ================= SAMPLE DATA ================= 
+INSERT INTO `employees` (`full_name`, `employee_name`) VALUES
+('นายสมชาย ใจดี', 'สมชาย'),
+('นางสาวสมหญิง รักงาน', 'สมหญิง'),
+('นายพิชิต มานะดี', 'พิชิต');
 
-    private function __construct() {
-        try {
-            $dsn = "mysql:host=" . DB_HOST .
-                   ";port=" . DB_PORT .
-                   ";dbname=" . DB_NAME .
-                   ";charset=" . DB_CHARSET;
+INSERT INTO `raw_materials` (`material_code`, `material_name`, `unit`, `display_order`) VALUES
+('MILK001', 'นม', 'ลิตร', 1),
+('SUGAR001', 'น้ำตาล', 'กิโลกรัม', 2),
+('COFFEE001', 'กาแฟ', 'กิโลกรัม', 3),
+('TEA001', 'ชา', 'กิโลกรัม', 4),
+('CHOC001', 'ช็อก', 'กิโลกรัม', 5),
+('DARK001', 'ดาร์ก', 'กิโลกรัม', 6),
+('WHITE001', 'ไวท์', 'กิโลกรัม', 7),
+('MILK_CON001', 'นมข้น', 'กระป๋อง', 8),
+('SYRUP_OR001', 'ไซรัปส้ม', 'ขวด', 9),
+('SYRUP_ST001', 'ไซรัปสตรอว์เบอรี่', 'ขวด', 10),
+('SYRUP_MI001', 'ไซรัปมิ้นท์', 'ขวด', 11),
+('SYRUP_GO001', 'ไซรัปทอง', 'ขวด', 12),
+('WATER001', 'น้ำเปล่า', 'ลิตร', 13),
+('DIP001', 'ดิป', 'กิโลกรัม', 14);
 
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false,
-
-                // ⭐ สำคัญสำหรับ Aiven (SSL)
-                PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
-            ];
-
-            $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
-        } catch (PDOException $e) {
-            die("❌ DB Connection failed: " . $e->getMessage());
-        }
-    }
-
-    public static function getInstance() {
-        if (self::$instance === null) {
-            self::$instance = new self();
-        }
-        return self::$instance;
-    }
-
-    public function getConnection() {
-        return $this->conn;
-    }
-}
-
-/* ================= HELPERS ================= */
-function jsonResponse($data, $status = 200) {
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode($data, JSON_UNESCAPED_UNICODE);
-    exit;
-}
-
-function getCurrentDate() {
-    return date('Y-m-d');
-}
-
-function getTodayPhotoDir() {
-    $dir = PHOTOS_DIR . '/' . getCurrentDate();
-    @mkdir($dir, 0755, true);
-    return $dir;
-}
+SET FOREIGN_KEY_CHECKS = 1;
