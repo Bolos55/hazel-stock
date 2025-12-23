@@ -76,15 +76,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     
                 case 'quick_edit':
                     $id = (int)$_POST['id'];
-                    $materialName = trim($_POST['material_name']);
+                    $field = $_POST['field'];
+                    $value = trim($_POST['value']);
                     
-                    if (empty($materialName)) {
-                        throw new Exception('กรุณากรอกชื่อวัตถุดิบ');
+                    // Validate field name for security
+                    $allowedFields = ['material_code', 'material_name', 'unit', 'sub_unit', 'display_order'];
+                    if (!in_array($field, $allowedFields)) {
+                        throw new Exception('ฟิลด์ไม่ถูกต้อง');
                     }
                     
-                    $stmt = $db->prepare("UPDATE raw_materials SET material_name = ? WHERE id = ?");
-                    $stmt->execute([$materialName, $id]);
-                    $success = "แก้ไขชื่อวัตถุดิบสำเร็จ";
+                    if (empty($value) && $field !== 'sub_unit') {
+                        throw new Exception('กรุณากรอกข้อมูล');
+                    }
+                    
+                    // Special handling for display_order
+                    if ($field === 'display_order') {
+                        $value = (int)$value;
+                        if ($value < 1) {
+                            throw new Exception('ลำดับแสดงต้องมากกว่า 0');
+                        }
+                    }
+                    
+                    // Check if we can update this field
+                    if ($field === 'sub_unit' && !$hasSubUnit) {
+                        throw new Exception('ระบบยังไม่รองรับหน่วยย่อย กรุณาอัพเดทฐานข้อมูลก่อน');
+                    }
+                    
+                    // Update the field
+                    $stmt = $db->prepare("UPDATE raw_materials SET {$field} = ? WHERE id = ?");
+                    $stmt->execute([$value, $id]);
+                    
+                    $fieldNames = [
+                        'material_code' => 'รหัสวัตถุดิบ',
+                        'material_name' => 'ชื่อวัตถุดิบ',
+                        'unit' => 'หน่วย',
+                        'sub_unit' => 'หน่วยย่อย',
+                        'display_order' => 'ลำดับแสดง'
+                    ];
+                    
+                    $success = "แก้ไข{$fieldNames[$field]}สำเร็จ";
                     break;
             }
         }
@@ -179,6 +209,10 @@ if (isset($_GET['edit'])) {
             padding: 0.25rem 0.75rem;
             font-size: 0.875rem;
             margin: 0 0.25rem;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         .btn-edit {
             background: #3b82f6;
@@ -193,6 +227,16 @@ if (isset($_GET['edit'])) {
         }
         .btn-delete:hover {
             background: #dc2626;
+        }
+        .edit-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .edit-inline button {
+            padding: 0.125rem 0.25rem;
+            font-size: 0.75rem;
+            min-width: auto;
         }
         .form-group {
             margin-bottom: 1rem;
@@ -354,6 +398,10 @@ if (isset($_GET['edit'])) {
             <div class="material-card">
                 <h3 class="text-lg font-semibold mb-4">🧪 รายการวัตถุดิบ (<?= count($materials) ?> รายการ)</h3>
                 
+                <div class="alert alert-info mb-4">
+                    <p><strong>💡 วิธีแก้ไข:</strong> คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> ข้างข้อมูลที่ต้องการแก้ไข</p>
+                </div>
+                
                 <?php if (empty($materials)): ?>
                     <div class="text-center py-8">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">🧪</div>
@@ -380,17 +428,45 @@ if (isset($_GET['edit'])) {
                             <tbody>
                                 <?php foreach ($materials as $material): ?>
                                     <tr>
-                                        <td class="text-center"><?= $material['display_order'] ?></td>
-                                        <td class="font-mono text-sm"><?= htmlspecialchars($material['material_code']) ?></td>
-                                        <td class="font-semibold"><?= htmlspecialchars($material['material_name']) ?></td>
-                                        <td><?= htmlspecialchars($material['unit']) ?></td>
+                                        <td class="text-center">
+                                            <div class="edit-inline justify-center">
+                                                <button onclick="editField(<?= $material['id'] ?>, 'display_order', '<?= $material['display_order'] ?>', 'ลำดับแสดง', 'number')" 
+                                                        class="btn-small btn-edit" title="แก้ไขลำดับ">✏️</button>
+                                                <?= $material['display_order'] ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="edit-inline">
+                                                <button onclick="editField(<?= $material['id'] ?>, 'material_code', '<?= htmlspecialchars($material['material_code']) ?>', 'รหัสวัตถุดิบ')" 
+                                                        class="btn-small btn-edit" title="แก้ไขรหัส">✏️</button>
+                                                <span class="font-mono text-sm"><?= htmlspecialchars($material['material_code']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="edit-inline">
+                                                <button onclick="editField(<?= $material['id'] ?>, 'material_name', '<?= htmlspecialchars($material['material_name']) ?>', 'ชื่อวัตถุดิบ')" 
+                                                        class="btn-small btn-edit" title="แก้ไขชื่อ">✏️</button>
+                                                <span class="font-semibold"><?= htmlspecialchars($material['material_name']) ?></span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="edit-inline">
+                                                <button onclick="editField(<?= $material['id'] ?>, 'unit', '<?= htmlspecialchars($material['unit']) ?>', '<?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?>')" 
+                                                        class="btn-small btn-edit" title="แก้ไขหน่วย">✏️</button>
+                                                <?= htmlspecialchars($material['unit']) ?>
+                                            </div>
+                                        </td>
                                         <?php if ($hasSubUnit): ?>
                                         <td>
-                                            <?php if (!empty($material['sub_unit'])): ?>
-                                                <span class="text-gray-600"><?= htmlspecialchars($material['sub_unit']) ?></span>
-                                            <?php else: ?>
-                                                <span class="text-gray-400">-</span>
-                                            <?php endif; ?>
+                                            <div class="edit-inline">
+                                                <button onclick="editField(<?= $material['id'] ?>, 'sub_unit', '<?= htmlspecialchars($material['sub_unit'] ?? '') ?>', 'หน่วยย่อย')" 
+                                                        class="btn-small btn-edit" title="แก้ไขหน่วยย่อย">✏️</button>
+                                                <?php if (!empty($material['sub_unit'])): ?>
+                                                    <span class="text-gray-600"><?= htmlspecialchars($material['sub_unit']) ?></span>
+                                                <?php else: ?>
+                                                    <span class="text-gray-400">-</span>
+                                                <?php endif; ?>
+                                            </div>
                                         </td>
                                         <?php endif; ?>
                                         <td class="text-center">
@@ -446,20 +522,40 @@ if (isset($_GET['edit'])) {
             }
         }
         
-        function editMaterialInline(id, currentName, currentUnit, currentSubUnit) {
-            const newName = prompt(`แก้ไขชื่อวัตถุดิบ:`, currentName);
-            if (newName && newName.trim() !== '' && newName !== currentName) {
+        function editField(id, field, currentValue, fieldLabel, inputType = 'text') {
+            let newValue;
+            
+            if (inputType === 'number') {
+                newValue = prompt(`แก้ไข${fieldLabel}:`, currentValue);
+                if (newValue !== null) {
+                    newValue = parseInt(newValue);
+                    if (isNaN(newValue) || newValue < 1) {
+                        alert('กรุณากรอกตัวเลขที่ถูกต้อง (มากกว่า 0)');
+                        return;
+                    }
+                }
+            } else {
+                newValue = prompt(`แก้ไข${fieldLabel}:`, currentValue);
+            }
+            
+            if (newValue !== null && newValue.toString().trim() !== '' && newValue.toString() !== currentValue.toString()) {
                 // Create a form to submit the change
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.innerHTML = `
                     <input type="hidden" name="action" value="quick_edit">
                     <input type="hidden" name="id" value="${id}">
-                    <input type="hidden" name="material_name" value="${newName.trim()}">
+                    <input type="hidden" name="field" value="${field}">
+                    <input type="hidden" name="value" value="${newValue.toString().trim()}">
                 `;
                 document.body.appendChild(form);
                 form.submit();
             }
+        }
+        
+        // Legacy function for backward compatibility
+        function editMaterialInline(id, currentName, currentUnit, currentSubUnit) {
+            editField(id, 'material_name', currentName, 'ชื่อวัตถุดิบ');
         }
     </script>
 </body>

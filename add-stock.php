@@ -249,12 +249,50 @@ try {
 
             <!-- Recent Additions -->
             <div class="material-card">
-                <h3 class="text-lg font-semibold mb-4">📋 การเพิ่มสต็อกล่าสุด (10 รายการ)</h3>
+                <?php 
+                $totalAdditions = 0;
+                $todayAdditions = 0;
+                try {
+                    $stmt = $db->query("SELECT COUNT(*) FROM stock_additions");
+                    $totalAdditions = $stmt->fetchColumn();
+                    
+                    $stmt = $db->prepare("SELECT COUNT(*) FROM stock_additions WHERE DATE(added_at) = CURDATE()");
+                    $stmt->execute();
+                    $todayAdditions = $stmt->fetchColumn();
+                } catch (Exception $e) {
+                    // Table doesn't exist
+                }
+                ?>
+                <h3 class="text-lg font-semibold mb-2">
+                    📋 การเพิ่มสต็อกล่าสุด 
+                </h3>
+                <div class="text-sm text-gray-600 mb-4">
+                    <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">
+                        📊 ทั้งหมด: <?= $totalAdditions ?> รายการ
+                    </span>
+                    <span class="bg-green-100 text-green-800 px-2 py-1 rounded mr-2">
+                        📅 วันนี้: <?= $todayAdditions ?> รายการ
+                    </span>
+                    <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded">
+                        👁️ แสดง: <?= count($recentAdditions) ?> รายการล่าสุด
+                    </span>
+                </div>
                 
                 <?php if (empty($recentAdditions)): ?>
                     <div class="text-center py-8">
                         <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
                         <p class="text-gray-600">ยังไม่มีการเพิ่มสต็อก</p>
+                        <p class="text-sm text-gray-500 mt-2">
+                            <?php 
+                            // Check if table exists
+                            try {
+                                $db->query("SELECT 1 FROM stock_additions LIMIT 1");
+                                echo "เริ่มเพิ่มสต็อกเพื่อดูประวัติที่นี่";
+                            } catch (Exception $e) {
+                                echo 'ตาราง stock_additions ยังไม่ได้สร้าง กรุณาไปที่ <a href="/migrate.php" class="text-blue-600 hover:text-blue-800">🔄 อัพเดท DB</a> ก่อน';
+                            }
+                            ?>
+                        </p>
                     </div>
                 <?php else: ?>
                     <div class="overflow-x-auto">
@@ -294,9 +332,29 @@ try {
                             </tbody>
                         </table>
                     </div>
+                    
+                    <?php if ($totalAdditions > count($recentAdditions)): ?>
+                        <div class="mt-4 text-center">
+                            <p class="text-sm text-gray-600 mb-2">
+                                มีข้อมูลเพิ่มเติมอีก <?= $totalAdditions - count($recentAdditions) ?> รายการ
+                            </p>
+                            <button onclick="showAllAdditions()" class="btn-secondary text-sm">
+                                📋 ดูทั้งหมด (<?= $totalAdditions ?> รายการ)
+                            </button>
+                        </div>
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
     </div>
+
+    <script>
+        function showAllAdditions() {
+            if (confirm('ต้องการดูข้อมูลการเพิ่มสต็อกทั้งหมดหรือไม่?\n\n(จะเปิดหน้าใหม่)')) {
+                // Create a simple page to show all additions
+                window.open('/view-stock-additions.php', '_blank');
+            }
+        }
+    </script>
 </body>
 </html>
