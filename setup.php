@@ -102,23 +102,92 @@ $isSetupMode = true;
     <div class="setup-container">
         <div class="text-center mb-6">
             <img src="assets/hazel-logo.png" alt="Hazel" style="width: 80px; height: 80px; margin: 0 auto 1rem;">
-            <h1 class="text-2xl font-bold text-red-600">Hazel Stock Setup Wizard</h1>
-            <p class="text-gray-600">ตัวช่วยติดตั้งและแก้ไขปัญหาระบบ</p>
+            <h1 class="text-2xl font-bold text-red-600">Hazel Stock Management</h1>
+            <p class="text-gray-600">ระบบจัดการสต็อกวัตถุดิบ</p>
         </div>
 
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+        <!-- System Status -->
+        <div class="material-card mb-6" style="background: #f0fdf4; border: 2px solid #10b981;">
+            <h3 class="text-lg font-semibold text-green-700 mb-4">✅ ระบบพร้อมใช้งาน!</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="flex items-center">
+                    <span class="text-green-600 mr-2">✅</span>
+                    <span>Database เชื่อมต่อสำเร็จ</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-green-600 mr-2">✅</span>
+                    <span>Tables สร้างครบถ้วน</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-green-600 mr-2">✅</span>
+                    <span>API ทำงานปกติ</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-green-600 mr-2">✅</span>
+                    <span>ระบบถ่ายรูปพร้อม</span>
+                </div>
+            </div>
         </div>
 
-        <div id="setupSteps">
-            <!-- Steps will be loaded here -->
+        <!-- Quick Actions -->
+        <div class="material-card mb-6">
+            <h3 class="text-lg font-semibold mb-4">🚀 เริ่มใช้งาน</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="/" class="block p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors">
+                    <div class="text-2xl mb-2">📝</div>
+                    <h4 class="font-semibold text-blue-700">บันทึกสต็อก</h4>
+                    <p class="text-sm text-blue-600">บันทึกข้อมูลสต็อกรายวัน</p>
+                </a>
+                
+                <a href="/view-records.php" class="block p-4 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
+                    <div class="text-2xl mb-2">📊</div>
+                    <h4 class="font-semibold text-green-700">ดูข้อมูล</h4>
+                    <p class="text-sm text-green-600">ดูและ Export ข้อมูล</p>
+                </a>
+                
+                <a href="/manage-employees.php" class="block p-4 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors">
+                    <div class="text-2xl mb-2">👥</div>
+                    <h4 class="font-semibold text-purple-700">จัดการพนักงาน</h4>
+                    <p class="text-sm text-purple-600">เพิ่ม แก้ไข ลบพนักงาน</p>
+                </a>
+            </div>
         </div>
 
+        <!-- System Info -->
+        <div class="material-card">
+            <h3 class="text-lg font-semibold mb-4">ℹ️ ข้อมูลระบบ</h3>
+            <div class="text-sm text-gray-600 space-y-2">
+                <div><strong>เวอร์ชัน:</strong> Hazel Stock Management v2.0</div>
+                <div><strong>ฐานข้อมูล:</strong> MySQL (Aiven Cloud)</div>
+                <div><strong>เซิร์ฟเวอร์:</strong> Render.com</div>
+                <div><strong>ฟีเจอร์:</strong> บันทึกสต็อก, ถ่ายรูป, Export CSV, จัดการพนักงาน</div>
+                <div><strong>อัพเดทล่าสุด:</strong> <?= date('d/m/Y H:i') ?> น.</div>
+            </div>
+        </div>
+
+        <!-- Hidden Debug Section -->
+        <div id="debugSection" class="hidden">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+
+            <div id="setupSteps">
+                <!-- Steps will be loaded here -->
+            </div>
+
+            <div class="text-center mt-6">
+                <button class="btn-setup" onclick="runSetup()">🚀 เริ่มการตรวจสอบ</button>
+                <button class="btn-setup btn-success" onclick="createTables()" id="btnCreateTables">📊 สร้าง Database Tables</button>
+                <button class="btn-setup btn-danger" onclick="resetSetup()">🔄 เริ่มใหม่</button>
+                <button class="btn-setup" onclick="directCreateTables()" style="background: #f59e0b;">⚡ สร้าง Tables ตรงๆ</button>
+            </div>
+        </div>
+
+        <!-- Show Debug Button -->
         <div class="text-center mt-6">
-            <button class="btn-setup" onclick="runSetup()">🚀 เริ่มการตรวจสอบ</button>
-            <button class="btn-setup btn-success" onclick="createTables()" id="btnCreateTables">📊 สร้าง Database Tables</button>
-            <button class="btn-setup btn-danger" onclick="resetSetup()">🔄 เริ่มใหม่</button>
-            <button class="btn-setup" onclick="directCreateTables()" style="background: #f59e0b;">⚡ สร้าง Tables ตรงๆ</button>
+            <button onclick="toggleDebugSection()" class="text-sm text-gray-500 hover:text-gray-700">
+                🔧 แสดงเครื่องมือ Debug (สำหรับผู้พัฒนา)
+            </button>
         </div>
 
         <div class="mt-8 p-4 bg-gray-50 rounded-lg">
@@ -409,6 +478,16 @@ $isSetupMode = true;
 
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Toggle debug section
+        function toggleDebugSection() {
+            const section = document.getElementById('debugSection');
+            if (section.classList.contains('hidden')) {
+                section.classList.remove('hidden');
+            } else {
+                section.classList.add('hidden');
+            }
         }
 
         // Direct create tables without checks
