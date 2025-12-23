@@ -103,6 +103,11 @@ try {
     ";
 
     // Execute the SQL
+    $pdo->exec("DROP TABLE IF EXISTS daily_stock_records");
+    $pdo->exec("DROP TABLE IF EXISTS excel_export_log"); 
+    $pdo->exec("DROP TABLE IF EXISTS employees");
+    $pdo->exec("DROP TABLE IF EXISTS raw_materials");
+    
     $pdo->exec($sql);
 
     // Insert sample data
