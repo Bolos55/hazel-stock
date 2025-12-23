@@ -566,30 +566,31 @@
                         
                         <!-- Camera Controls -->
                         <div class="mb-3">
+                            <!-- Camera Input (with capture) -->
                             <input type="file" 
                                    accept="image/*" 
                                    capture="environment"
                                    class="hidden" 
-                                   id="fileInput-${material.id}"
+                                   id="cameraInput-${material.id}"
                                    onchange="handleFileSelect(${material.id}, this)">
                             <button type="button" 
                                     class="btn-camera" 
-                                    onclick="document.getElementById('fileInput-${material.id}').click()">
+                                    onclick="document.getElementById('cameraInput-${material.id}').click()">
                                 📷 ถ่ายรูป
                             </button>
+                            
+                            <!-- Gallery Input (without capture) -->
+                            <input type="file" 
+                                   accept="image/*" 
+                                   class="hidden" 
+                                   id="galleryInput-${material.id}"
+                                   onchange="handleFileSelect(${material.id}, this)">
                             <button type="button" 
                                     class="btn-camera ml-2" 
-                                    onclick="openGallery(${material.id})">
+                                    onclick="document.getElementById('galleryInput-${material.id}').click()">
                                 📁 เลือกจากแกลเลอรี่
                             </button>
                         </div>
-                        
-                        <!-- Gallery Input -->
-                        <input type="file" 
-                               accept="image/*" 
-                               class="hidden" 
-                               id="galleryInput-${material.id}"
-                               onchange="handleFileSelect(${material.id}, this)">
                         
                         <!-- Photo Preview -->
                         <div id="photoPreview-${material.id}" class="photo-preview hidden">
@@ -682,11 +683,6 @@
         // Photo storage
         window.photoStorage = {};
         
-        // Open gallery
-        function openGallery(materialId) {
-            document.getElementById(`galleryInput-${materialId}`).click();
-        }
-        
         // Handle file select (both camera and gallery)
         function handleFileSelect(materialId, input) {
             const file = input.files[0];
@@ -717,6 +713,19 @@
                 input.value = '';
             }
         }
+        
+        // Check camera support and show appropriate message
+        function checkCameraSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.log('Camera not supported on this device/browser');
+                // Still allow file input as fallback
+            }
+        }
+        
+        // Initialize camera check
+        window.addEventListener('load', function() {
+            checkCameraSupport();
+        });
         
         // Resize image to reduce file size
         function resizeImage(dataUrl, maxWidth, maxHeight, callback) {
