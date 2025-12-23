@@ -40,6 +40,33 @@
         .btn-camera:active, .btn-capture:active, .btn-retake:active {
             transform: translateY(0);
         }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+            transform: translateY(-1px);
+        }
+        
+        .w-full {
+            width: 100%;
+        }
+        
+        .space-y-3 > * + * {
+            margin-top: 0.75rem;
+        }
         .btn-capture {
             background: #10b981;
             margin-top: 0.5rem;
@@ -281,6 +308,19 @@
                     <h2 class="text-xl font-semibold mb-3 text-green-600">บันทึกสำเร็จ!</h2>
                     <p class="text-gray-600">ข้อมูลสต็อกได้ถูกบันทึกเรียบร้อยแล้ว</p>
                     <div class="mt-4 p-4 bg-gray-50 rounded-lg text-sm" id="successInfo"></div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="mt-6 space-y-3">
+                        <button class="btn-primary w-full" onclick="viewRecords()">
+                            📊 ดูข้อมูลที่บันทึก
+                        </button>
+                        <button class="btn-secondary w-full" onclick="startNew()">
+                            🔄 บันทึกใหม่
+                        </button>
+                        <a href="/view-records.php" class="block text-center text-blue-600 hover:text-blue-800 text-sm">
+                            📈 ดูข้อมูลทั้งหมด
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -340,6 +380,30 @@
             } else {
                 panel.classList.add('hidden');
             }
+        }
+        
+        // View records (redirect to view page)
+        function viewRecords() {
+            window.location.href = '/view-records.php';
+        }
+        
+        // Start new recording
+        function startNew() {
+            // Reset all sections
+            document.getElementById('successSection').classList.add('hidden');
+            document.getElementById('materialsSection').classList.add('hidden');
+            document.getElementById('employeeSection').classList.remove('hidden');
+            
+            // Clear form
+            document.getElementById('employeeName').value = '';
+            document.getElementById('materialsList').innerHTML = '';
+            
+            // Clear photo storage
+            window.photoStorage = {};
+            
+            // Reset variables
+            materials = [];
+            employeeName = '';
         }
         
         // Check system status
