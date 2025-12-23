@@ -33,14 +33,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $employeeId = $employee['id'];
             }
             
-            // Add stock entry
-            $stmt = $db->prepare("
-                INSERT INTO stock_additions (material_id, employee_id, quantity, note, added_at) 
-                VALUES (?, ?, ?, ?, NOW())
-            ");
-            $stmt->execute([$materialId, $employeeId, $quantity, $note]);
-            
-            $success = "เพิ่มสต็อกสำเร็จ: {$quantity} หน่วย";
+            // Add stock entry (only if table exists)
+            try {
+                $stmt = $db->prepare("
+                    INSERT INTO stock_additions (material_id, employee_id, quantity, note, added_at) 
+                    VALUES (?, ?, ?, ?, NOW())
+                ");
+                $stmt->execute([$materialId, $employeeId, $quantity, $note]);
+                $success = "เพิ่มสต็อกสำเร็จ: {$quantity} หน่วย";
+            } catch (Exception $e) {
+                if (strpos($e->getMessage(), "stock_additions") !== false) {
+                    throw new Exception('ตาราง stock_additions ยังไม่ได้สร้าง กรุณาไปที่หน้า "🔄 อัพเดท DB" ก่อน');
+                } else {
+                    throw $e;
+                }
+            }
         }
     } catch (Exception $e) {
         $error = $e->getMessage();
@@ -50,30 +57,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get all materials
 try {
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->query("
-        SELECT id, material_name, unit, sub_unit 
-        FROM raw_materials 
-        ORDER BY display_order ASC, material_name ASC
-    ");
+    
+    // Check if sub_unit column exists
+    try {
+        $stmt = $db->query("
+            SELECT id, material_name, unit, COALESCE(sub_unit, '') as sub_unit 
+            FROM raw_materials 
+            ORDER BY display_order ASC, material_name ASC
+        ");
+    } catch (Exception $e) {
+        // Fallback if sub_unit doesn't exist
+        $stmt = $db->query("
+            SELECT id, material_name, unit, '' as sub_unit 
+            FROM raw_materials 
+            ORDER BY display_order ASC, material_name ASC
+        ");
+    }
     $materials = $stmt->fetchAll();
     
-    // Get recent stock additions
-    $stmt = $db->query("
-        SELECT 
-            sa.quantity,
-            sa.note,
-            sa.added_at,
-            rm.material_name,
-            rm.unit,
-            rm.sub_unit,
-            e.employee_name
-        FROM stock_additions sa
-        JOIN raw_materials rm ON sa.material_id = rm.id
-        JOIN employees e ON sa.employee_id = e.id
-        ORDER BY sa.added_at DESC
-        LIMIT 10
-    ");
-    $recentAdditions = $stmt->fetchAll();
+    // Get recent stock additions (only if table exists)
+    try {
+        $stmt = $db->query("
+            SELECT 
+                sa.quantity,
+                sa.note,
+                sa.added_at,
+                rm.material_name,
+                rm.unit,
+                COALESCE(rm.sub_unit, '') as sub_unit,
+                e.employee_name
+            FROM stock_additions sa
+            JOIN raw_materials rm ON sa.material_id = rm.id
+            JOIN employees e ON sa.employee_id = e.id
+            ORDER BY sa.added_at DESC
+            LIMIT 10
+        ");
+        $recentAdditions = $stmt->fetchAll();
+    } catch (Exception $e) {
+        // Table doesn't exist yet
+        $recentAdditions = [];
+    }
     
 } catch (Exception $e) {
     $error = $e->getMessage();

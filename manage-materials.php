@@ -12,15 +12,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $materialCode = trim($_POST['material_code']);
                     $materialName = trim($_POST['material_name']);
                     $unit = trim($_POST['unit']);
-                    $subUnit = trim($_POST['sub_unit']) ?: null;
+                    $subUnit = isset($_POST['sub_unit']) ? trim($_POST['sub_unit']) ?: null : null;
                     $displayOrder = (int)$_POST['display_order'];
                     
                     if (empty($materialCode) || empty($materialName) || empty($unit)) {
                         throw new Exception('กรุณากรอกข้อมูลให้ครบ');
                     }
                     
-                    $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, display_order) VALUES (?, ?, ?, ?, ?)");
-                    $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder]);
+                    // Check if sub_unit column exists
+                    try {
+                        $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+                        $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, display_order) VALUES (?, ?, ?, ?, ?)");
+                        $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder]);
+                    } catch (Exception $e) {
+                        // sub_unit column doesn't exist, use basic insert
+                        $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, display_order) VALUES (?, ?, ?, ?)");
+                        $stmt->execute([$materialCode, $materialName, $unit, $displayOrder]);
+                    }
                     $success = "เพิ่มวัตถุดิบสำเร็จ";
                     break;
                     
@@ -29,15 +37,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $materialCode = trim($_POST['material_code']);
                     $materialName = trim($_POST['material_name']);
                     $unit = trim($_POST['unit']);
-                    $subUnit = trim($_POST['sub_unit']) ?: null;
+                    $subUnit = isset($_POST['sub_unit']) ? trim($_POST['sub_unit']) ?: null : null;
                     $displayOrder = (int)$_POST['display_order'];
                     
                     if (empty($materialCode) || empty($materialName) || empty($unit)) {
                         throw new Exception('กรุณากรอกข้อมูลให้ครบ');
                     }
                     
-                    $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, sub_unit = ?, display_order = ? WHERE id = ?");
-                    $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder, $id]);
+                    // Check if sub_unit column exists
+                    try {
+                        $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+                        $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, sub_unit = ?, display_order = ? WHERE id = ?");
+                        $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder, $id]);
+                    } catch (Exception $e) {
+                        // sub_unit column doesn't exist, use basic update
+                        $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, display_order = ? WHERE id = ?");
+                        $stmt->execute([$materialCode, $materialName, $unit, $displayOrder, $id]);
+                    }
                     $success = "แก้ไขวัตถุดิบสำเร็จ";
                     break;
                     
@@ -80,20 +96,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Get all materials
 try {
     $db = Database::getInstance()->getConnection();
-    $stmt = $db->query("
-        SELECT 
-            rm.*,
-            COUNT(dsr.id) as record_count,
-            MAX(dsr.record_date) as last_record_date
-        FROM raw_materials rm
-        LEFT JOIN daily_stock_records dsr ON rm.id = dsr.material_id
-        GROUP BY rm.id
-        ORDER BY rm.display_order ASC, rm.material_name ASC
-    ");
+    
+    // Check if sub_unit column exists
+    $hasSubUnit = false;
+    try {
+        $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+        $hasSubUnit = true;
+    } catch (Exception $e) {
+        // sub_unit column doesn't exist
+    }
+    
+    if ($hasSubUnit) {
+        $stmt = $db->query("
+            SELECT 
+                rm.*,
+                COUNT(dsr.id) as record_count,
+                MAX(dsr.record_date) as last_record_date
+            FROM raw_materials rm
+            LEFT JOIN daily_stock_records dsr ON rm.id = dsr.material_id
+            GROUP BY rm.id
+            ORDER BY rm.display_order ASC, rm.material_name ASC
+        ");
+    } else {
+        $stmt = $db->query("
+            SELECT 
+                rm.*,
+                '' as sub_unit,
+                COUNT(dsr.id) as record_count,
+                MAX(dsr.record_date) as last_record_date
+            FROM raw_materials rm
+            LEFT JOIN daily_stock_records dsr ON rm.id = dsr.material_id
+            GROUP BY rm.id
+            ORDER BY rm.display_order ASC, rm.material_name ASC
+        ");
+    }
     $materials = $stmt->fetchAll();
 } catch (Exception $e) {
     $error = $e->getMessage();
     $materials = [];
+    $hasSubUnit = false;
 }
 
 // Get material for editing
@@ -240,7 +281,7 @@ if (isset($_GET['edit'])) {
                         <input type="hidden" name="id" value="<?= $editMaterial['id'] ?>">
                     <?php endif; ?>
                     
-                    <div class="grid grid-cols-5 gap-4">
+                    <div class="grid <?= $hasSubUnit ? 'grid-cols-5' : 'grid-cols-4' ?> gap-4">
                         <div class="form-group">
                             <label for="material_code">รหัสวัตถุดิบ</label>
                             <input type="text" 
@@ -264,16 +305,17 @@ if (isset($_GET['edit'])) {
                         </div>
                         
                         <div class="form-group">
-                            <label for="unit">หน่วยหลัก</label>
+                            <label for="unit"><?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?></label>
                             <input type="text" 
                                    id="unit" 
                                    name="unit" 
                                    class="form-input" 
                                    value="<?= htmlspecialchars($editMaterial['unit'] ?? '') ?>"
-                                   placeholder="เช่น ถุง, กล่อง, ขวด"
+                                   placeholder="<?= $hasSubUnit ? 'เช่น ถุง, กล่อง, ขวด' : 'เช่น ลิตร, กิโลกรัม' ?>"
                                    required>
                         </div>
                         
+                        <?php if ($hasSubUnit): ?>
                         <div class="form-group">
                             <label for="sub_unit">หน่วยย่อย (ไม่บังคับ)</label>
                             <input type="text" 
@@ -283,6 +325,7 @@ if (isset($_GET['edit'])) {
                                    value="<?= htmlspecialchars($editMaterial['sub_unit'] ?? '') ?>"
                                    placeholder="เช่น ลิตร, กิโลกรัม">
                         </div>
+                        <?php endif; ?>
                         
                         <div class="form-group">
                             <label for="display_order">ลำดับแสดง</label>
@@ -324,8 +367,10 @@ if (isset($_GET['edit'])) {
                                     <th>ลำดับ</th>
                                     <th>รหัส</th>
                                     <th>ชื่อวัตถุดิบ</th>
-                                    <th>หน่วยหลัก</th>
+                                    <th><?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?></th>
+                                    <?php if ($hasSubUnit): ?>
                                     <th>หน่วยย่อย</th>
+                                    <?php endif; ?>
                                     <th>จำนวนการบันทึก</th>
                                     <th>บันทึกล่าสุด</th>
                                     <th>วันที่เพิ่ม</th>
@@ -339,13 +384,15 @@ if (isset($_GET['edit'])) {
                                         <td class="font-mono text-sm"><?= htmlspecialchars($material['material_code']) ?></td>
                                         <td class="font-semibold"><?= htmlspecialchars($material['material_name']) ?></td>
                                         <td><?= htmlspecialchars($material['unit']) ?></td>
+                                        <?php if ($hasSubUnit): ?>
                                         <td>
-                                            <?php if ($material['sub_unit']): ?>
+                                            <?php if (!empty($material['sub_unit'])): ?>
                                                 <span class="text-gray-600"><?= htmlspecialchars($material['sub_unit']) ?></span>
                                             <?php else: ?>
                                                 <span class="text-gray-400">-</span>
                                             <?php endif; ?>
                                         </td>
+                                        <?php endif; ?>
                                         <td class="text-center">
                                             <?php if ($material['record_count'] > 0): ?>
                                                 <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
