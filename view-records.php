@@ -192,7 +192,10 @@ try {
             <div class="material-card mb-4">
                 <div class="flex justify-between items-center mb-4">
                     <a href="/" class="text-blue-600 hover:text-blue-800">← กลับหน้าหลัก</a>
-                    <a href="/setup.php" class="text-gray-600 hover:text-gray-800 text-sm">🛠️ Setup</a>
+                    <div class="space-x-2">
+                        <a href="/manage-employees.php" class="text-green-600 hover:text-green-800 text-sm">👥 จัดการพนักงาน</a>
+                        <a href="/setup.php" class="text-gray-600 hover:text-gray-800 text-sm">🛠️ Setup</a>
+                    </div>
                 </div>
                 
                 <!-- Date Filter -->
