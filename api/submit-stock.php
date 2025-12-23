@@ -65,21 +65,57 @@ try {
     foreach ($stockData as $item) {
         if (
             empty($item['material_id']) ||
-            !isset($item['quantity']) ||
-            empty($item['photo'])
+            !isset($item['quantity'])
         ) {
             throw new Exception('ข้อมูลวัตถุดิบไม่ครบ');
         }
 
         if ($item['quantity'] <= 0) {
-            throw new Exception('จำนวนต้องมากกว่า 0');
+            continue; // Skip items with 0 quantity
         }
 
         // ตรวจสอบว่า material_id มีอยู่จริง
-        $checkStmt = $db->prepare("SELECT id FROM raw_materials WHERE id = ?");
+        $checkStmt = $db->prepare("SELECT material_name FROM raw_materials WHERE id = ?");
         $checkStmt->execute([$item['material_id']]);
-        if (!$checkStmt->fetch()) {
+        $material = $checkStmt->fetch();
+        if (!$material) {
             throw new Exception('ไม่พบวัตถุดิบ ID: ' . $item['material_id']);
+        }
+
+        // Handle photo upload
+        $photoPath = 'no-photo.jpg';
+        if (!empty($item['photo']) && $item['photo'] !== 'no-photo.jpg') {
+            try {
+                // Decode base64 image
+                if (preg_match('/^data:image\/(\w+);base64,/', $item['photo'], $matches)) {
+                    $imageType = $matches[1];
+                    $imageData = substr($item['photo'], strpos($item['photo'], ',') + 1);
+                    $imageData = base64_decode($imageData);
+                    
+                    if ($imageData === false) {
+                        throw new Exception('Invalid image data');
+                    }
+                    
+                    // Create today's photo directory
+                    $todayDir = PHOTOS_DIR . '/' . $today;
+                    if (!is_dir($todayDir)) {
+                        mkdir($todayDir, 0755, true);
+                    }
+                    
+                    // Generate filename
+                    $safeName = preg_replace('/[^a-zA-Z0-9ก-๙]/u', '-', $material['material_name']);
+                    $fileName = $safeName . '-' . time() . '-' . $item['material_id'] . '.jpg';
+                    $filePath = $todayDir . '/' . $fileName;
+                    
+                    // Save image
+                    if (file_put_contents($filePath, $imageData) !== false) {
+                        $photoPath = $today . '/' . $fileName;
+                    }
+                }
+            } catch (Exception $photoError) {
+                // Log photo error but continue with submission
+                error_log('Photo upload error: ' . $photoError->getMessage());
+            }
         }
 
         $stmt->execute([
@@ -87,7 +123,7 @@ try {
             $employeeId,
             $item['material_id'],
             $item['quantity'],
-            $item['photo']
+            $photoPath
         ]);
     }
 

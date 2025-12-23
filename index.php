@@ -5,6 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hazel Stock Management</title>
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .camera-section {
+            border: 2px dashed #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 0.5rem;
+        }
+        .camera-preview {
+            width: 100%;
+            max-width: 300px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 2px solid #d1d5db;
+        }
+        .btn-camera, .btn-capture, .btn-retake {
+            background: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .btn-camera:hover, .btn-capture:hover, .btn-retake:hover {
+            background: #2563eb;
+        }
+        .btn-camera:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .btn-capture {
+            background: #10b981;
+            margin-top: 0.5rem;
+        }
+        .btn-capture:hover {
+            background: #059669;
+        }
+        .btn-retake {
+            background: #f59e0b;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+        }
+        .btn-retake:hover {
+            background: #d97706;
+        }
+        .photo-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+            border-radius: 0.5rem;
+        }
+        .preview-image {
+            width: 100%;
+            max-width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 0.375rem;
+            border: 1px solid #d1d5db;
+        }
+        .quantity-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+        }
+        .quantity-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -228,18 +303,81 @@
             
             materials.forEach((material, index) => {
                 const div = document.createElement('div');
-                div.className = 'mb-4 p-4 bg-gray-50 rounded-lg';
+                div.className = 'mb-6 p-4 bg-gray-50 rounded-lg border';
                 div.innerHTML = `
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        ${material.material_name} (${material.unit})
-                    </label>
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="block text-sm font-medium text-gray-700">
+                            ${material.material_name} (${material.unit})
+                        </label>
+                        <span class="text-xs text-gray-500">${index + 1}/14</span>
+                    </div>
+                    
+                    <!-- Quantity Input -->
                     <input type="number" 
-                           class="quantity-input" 
+                           class="quantity-input mb-3" 
                            placeholder="จำนวนคงเหลือ"
                            data-material-id="${material.id}"
                            min="0" 
                            step="0.01"
                            required>
+                    
+                    <!-- Camera Section -->
+                    <div class="camera-section">
+                        <div class="mb-2">
+                            <label class="text-sm font-medium text-red-600">📸 ถ่ายรูปยืนยัน (จำเป็น)</label>
+                        </div>
+                        
+                        <!-- Camera Controls -->
+                        <div class="mb-3">
+                            <button type="button" 
+                                    class="btn-camera" 
+                                    onclick="startCamera(${material.id})"
+                                    id="cameraBtn-${material.id}">
+                                📷 เปิดกล้อง
+                            </button>
+                            <input type="file" 
+                                   accept="image/*" 
+                                   capture="environment"
+                                   class="hidden" 
+                                   id="fileInput-${material.id}"
+                                   onchange="handleFileSelect(${material.id}, this)">
+                            <button type="button" 
+                                    class="btn-camera ml-2" 
+                                    onclick="document.getElementById('fileInput-${material.id}').click()">
+                                📁 เลือกไฟล์
+                            </button>
+                        </div>
+                        
+                        <!-- Video Preview -->
+                        <video id="video-${material.id}" 
+                               class="camera-preview hidden" 
+                               autoplay 
+                               playsinline></video>
+                        
+                        <!-- Capture Button -->
+                        <button type="button" 
+                                class="btn-capture hidden" 
+                                id="captureBtn-${material.id}"
+                                onclick="capturePhoto(${material.id})">
+                            📸 ถ่ายรูป
+                        </button>
+                        
+                        <!-- Canvas for processing -->
+                        <canvas id="canvas-${material.id}" class="hidden"></canvas>
+                        
+                        <!-- Photo Preview -->
+                        <div id="photoPreview-${material.id}" class="photo-preview hidden">
+                            <img id="photoImg-${material.id}" class="preview-image">
+                            <div class="mt-2">
+                                <button type="button" 
+                                        class="btn-retake" 
+                                        onclick="retakePhoto(${material.id})">
+                                    🔄 ถ่ายใหม่
+                                </button>
+                                <span class="ml-2 text-green-600 text-sm">✅ รูปพร้อมแล้ว</span>
+                            </div>
+                        </div>
+                    </div>
                 `;
                 container.appendChild(div);
             });
@@ -250,19 +388,35 @@
             const inputs = document.querySelectorAll('#materialsList input[type="number"]');
             const stockData = [];
             let hasData = false;
+            let missingPhotos = [];
             
             inputs.forEach(input => {
                 const quantity = parseFloat(input.value) || 0;
-                if (quantity > 0) hasData = true;
+                const materialId = input.dataset.materialId;
+                const photoData = window.photoStorage && window.photoStorage[materialId];
+                
+                if (quantity > 0) {
+                    hasData = true;
+                    if (!photoData) {
+                        const materialName = materials.find(m => m.id == materialId)?.material_name || `ID ${materialId}`;
+                        missingPhotos.push(materialName);
+                    }
+                }
+                
                 stockData.push({
-                    material_id: input.dataset.materialId,
+                    material_id: materialId,
                     quantity: quantity,
-                    photo: 'no-photo.jpg' // Temporary - will add photo feature later
+                    photo: photoData || 'no-photo.jpg'
                 });
             });
             
             if (!hasData) {
                 showError('กรุณากรอกข้อมูลอย่างน้อย 1 รายการ');
+                return;
+            }
+            
+            if (missingPhotos.length > 0) {
+                showError(`กรุณาถ่ายรูปยืนยันสำหรับ: ${missingPhotos.join(', ')}`);
                 return;
             }
             
@@ -287,6 +441,7 @@
                     document.getElementById('successInfo').innerHTML = `
                         <div>พนักงาน: ${employeeName}</div>
                         <div>จำนวนรายการ: ${stockData.filter(item => item.quantity > 0).length} รายการ</div>
+                        <div>รูปภาพ: ${Object.keys(window.photoStorage || {}).length} รูป</div>
                         <div>เวลาบันทึก: ${new Date().toLocaleString('th-TH')}</div>
                     `;
                 } else {
@@ -296,6 +451,97 @@
                 console.error('Submit error:', error);
                 showError('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
             }
+        }
+        
+        // Photo storage
+        window.photoStorage = {};
+        
+        // Start camera
+        async function startCamera(materialId) {
+            try {
+                const video = document.getElementById(`video-${materialId}`);
+                const captureBtn = document.getElementById(`captureBtn-${materialId}`);
+                const cameraBtn = document.getElementById(`cameraBtn-${materialId}`);
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                video.srcObject = stream;
+                video.classList.remove('hidden');
+                captureBtn.classList.remove('hidden');
+                cameraBtn.textContent = '📷 กล้องเปิดแล้ว';
+                cameraBtn.disabled = true;
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                showError('ไม่สามารถเปิดกล้องได้: ' + error.message);
+            }
+        }
+        
+        // Capture photo
+        function capturePhoto(materialId) {
+            const video = document.getElementById(`video-${materialId}`);
+            const canvas = document.getElementById(`canvas-${materialId}`);
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0);
+            
+            // Convert to blob and store
+            canvas.toBlob(blob => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.photoStorage[materialId] = e.target.result;
+                    showPhotoPreview(materialId, e.target.result);
+                    stopCamera(materialId);
+                };
+                reader.readAsDataURL(blob);
+            }, 'image/jpeg', 0.8);
+        }
+        
+        // Handle file select
+        function handleFileSelect(materialId, input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.photoStorage[materialId] = e.target.result;
+                    showPhotoPreview(materialId, e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        // Show photo preview
+        function showPhotoPreview(materialId, dataUrl) {
+            const preview = document.getElementById(`photoPreview-${materialId}`);
+            const img = document.getElementById(`photoImg-${materialId}`);
+            
+            img.src = dataUrl;
+            preview.classList.remove('hidden');
+        }
+        
+        // Retake photo
+        function retakePhoto(materialId) {
+            delete window.photoStorage[materialId];
+            document.getElementById(`photoPreview-${materialId}`).classList.add('hidden');
+            document.getElementById(`cameraBtn-${materialId}`).disabled = false;
+            document.getElementById(`cameraBtn-${materialId}`).textContent = '📷 เปิดกล้อง';
+        }
+        
+        // Stop camera
+        function stopCamera(materialId) {
+            const video = document.getElementById(`video-${materialId}`);
+            const stream = video.srcObject;
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            
+            video.classList.add('hidden');
+            document.getElementById(`captureBtn-${materialId}`).classList.add('hidden');
         }
     </script>
 </body>
