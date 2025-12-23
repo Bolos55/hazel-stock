@@ -474,6 +474,7 @@ if (isset($_GET['edit'])) {
                         <a href="/view-records.php" class="text-blue-600 hover:text-blue-800 text-sm">📊 ดูข้อมูลสต็อก</a>
                         <a href="/manage-employees.php" class="text-green-600 hover:text-green-800 text-sm">👥 จัดการพนักงาน</a>
                         <a href="/add-stock.php" class="text-orange-600 hover:text-orange-800 text-sm">📦 เพิ่มสต็อกเข้า</a>
+                        <a href="/migrate.php" class="text-purple-600 hover:text-purple-800 text-sm">⚡ อัพเดทระบบ</a>
                     </div>
                 </div>
             </div>
@@ -485,6 +486,28 @@ if (isset($_GET['edit'])) {
             
             <?php if (isset($error)): ?>
                 <div class="alert alert-error">❌ <?= htmlspecialchars($error) ?></div>
+            <?php endif; ?>
+
+            <!-- Database Update Notice -->
+            <?php if (!$dbHasSubUnit || !$dbHasQuantities): ?>
+                <div class="material-card mb-6" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b;">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div style="font-size: 2rem;">⚡</div>
+                            <div>
+                                <h4 class="text-lg font-semibold text-amber-800">อัพเดทระบบเพื่อใช้งานฟีเจอร์ใหม่</h4>
+                                <p class="text-amber-700 text-sm mt-1">
+                                    ระบบต้องการอัพเดทฐานข้อมูลเพื่อรองรับ <strong>หน่วยย่อย</strong> และ <strong>จำนวนคู่</strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <a href="/migrate.php" class="btn-primary" style="background: #f59e0b; border-color: #f59e0b;">
+                                🚀 อัพเดทเลย
+                            </a>
+                        </div>
+                    </div>
+                </div>
             <?php endif; ?>
 
             <!-- Add/Edit Material Form -->
@@ -650,6 +673,9 @@ if (isset($_GET['edit'])) {
                         <li>คลิก <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">🔥 ขั้นต่ำ</span> เพื่อแสดงเฉพาะข้อมูลสำคัญ</li>
                         <li><strong>หน่วย:</strong> แยกเป็น 2 คอลัมน์ - หน่วยหลัก (เช่น ถุง) และหน่วยย่อย (เช่น ลิตร)</li>
                         <li><strong>จำนวนคงเหลือ:</strong> ระบุจำนวนในรูปแบบ "2 ถุง 1 ลิตร" เพื่อแสดงสต็อกปัจจุบัน</li>
+                        <?php if (!$dbHasSubUnit || !$dbHasQuantities): ?>
+                        <li><strong>⚡ สำคัญ:</strong> คลิก <span class="bg-amber-500 text-white px-2 py-1 rounded text-xs">🚀 อัพเดทเลย</span> เพื่อเปิดใช้ฟีเจอร์ใหม่</li>
+                        <?php endif; ?>
                     </ul>
                 </div>
                 
