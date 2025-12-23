@@ -545,7 +545,8 @@
                 div.innerHTML = `
                     <div class="flex justify-between items-center mb-3">
                         <label class="block text-sm font-medium text-gray-700">
-                            ${material.material_name} (${material.unit})
+                            ${material.material_name}
+                            ${material.sub_unit ? `(${material.unit} - ${material.sub_unit})` : `(${material.unit})`}
                         </label>
                         <span class="text-xs text-gray-500">${index + 1}/14</span>
                     </div>

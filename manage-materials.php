@@ -12,14 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $materialCode = trim($_POST['material_code']);
                     $materialName = trim($_POST['material_name']);
                     $unit = trim($_POST['unit']);
+                    $subUnit = trim($_POST['sub_unit']) ?: null;
                     $displayOrder = (int)$_POST['display_order'];
                     
                     if (empty($materialCode) || empty($materialName) || empty($unit)) {
                         throw new Exception('กรุณากรอกข้อมูลให้ครบ');
                     }
                     
-                    $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, display_order) VALUES (?, ?, ?, ?)");
-                    $stmt->execute([$materialCode, $materialName, $unit, $displayOrder]);
+                    $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, display_order) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder]);
                     $success = "เพิ่มวัตถุดิบสำเร็จ";
                     break;
                     
@@ -28,14 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $materialCode = trim($_POST['material_code']);
                     $materialName = trim($_POST['material_name']);
                     $unit = trim($_POST['unit']);
+                    $subUnit = trim($_POST['sub_unit']) ?: null;
                     $displayOrder = (int)$_POST['display_order'];
                     
                     if (empty($materialCode) || empty($materialName) || empty($unit)) {
                         throw new Exception('กรุณากรอกข้อมูลให้ครบ');
                     }
                     
-                    $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, display_order = ? WHERE id = ?");
-                    $stmt->execute([$materialCode, $materialName, $unit, $displayOrder, $id]);
+                    $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, sub_unit = ?, display_order = ? WHERE id = ?");
+                    $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder, $id]);
                     $success = "แก้ไขวัตถุดิบสำเร็จ";
                     break;
                     
@@ -173,8 +175,11 @@ if (isset($_GET['edit'])) {
         .gap-4 {
             gap: 1rem;
         }
+        .grid-cols-5 {
+            grid-template-columns: repeat(5, 1fr);
+        }
         @media (max-width: 768px) {
-            .grid-cols-2, .grid-cols-4 {
+            .grid-cols-2, .grid-cols-4, .grid-cols-5 {
                 grid-template-columns: 1fr;
             }
         }
@@ -221,7 +226,7 @@ if (isset($_GET['edit'])) {
                         <input type="hidden" name="id" value="<?= $editMaterial['id'] ?>">
                     <?php endif; ?>
                     
-                    <div class="grid grid-cols-4 gap-4">
+                    <div class="grid grid-cols-5 gap-4">
                         <div class="form-group">
                             <label for="material_code">รหัสวัตถุดิบ</label>
                             <input type="text" 
@@ -245,14 +250,24 @@ if (isset($_GET['edit'])) {
                         </div>
                         
                         <div class="form-group">
-                            <label for="unit">หน่วย</label>
+                            <label for="unit">หน่วยหลัก</label>
                             <input type="text" 
                                    id="unit" 
                                    name="unit" 
                                    class="form-input" 
                                    value="<?= htmlspecialchars($editMaterial['unit'] ?? '') ?>"
-                                   placeholder="เช่น ลิตร"
+                                   placeholder="เช่น ถุง, กล่อง, ขวด"
                                    required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sub_unit">หน่วยย่อย (ไม่บังคับ)</label>
+                            <input type="text" 
+                                   id="sub_unit" 
+                                   name="sub_unit" 
+                                   class="form-input" 
+                                   value="<?= htmlspecialchars($editMaterial['sub_unit'] ?? '') ?>"
+                                   placeholder="เช่น ลิตร, กิโลกรัม">
                         </div>
                         
                         <div class="form-group">
@@ -295,7 +310,8 @@ if (isset($_GET['edit'])) {
                                     <th>ลำดับ</th>
                                     <th>รหัส</th>
                                     <th>ชื่อวัตถุดิบ</th>
-                                    <th>หน่วย</th>
+                                    <th>หน่วยหลัก</th>
+                                    <th>หน่วยย่อย</th>
                                     <th>จำนวนการบันทึก</th>
                                     <th>บันทึกล่าสุด</th>
                                     <th>วันที่เพิ่ม</th>
@@ -309,6 +325,13 @@ if (isset($_GET['edit'])) {
                                         <td class="font-mono text-sm"><?= htmlspecialchars($material['material_code']) ?></td>
                                         <td class="font-semibold"><?= htmlspecialchars($material['material_name']) ?></td>
                                         <td><?= htmlspecialchars($material['unit']) ?></td>
+                                        <td>
+                                            <?php if ($material['sub_unit']): ?>
+                                                <span class="text-gray-600"><?= htmlspecialchars($material['sub_unit']) ?></span>
+                                            <?php else: ?>
+                                                <span class="text-gray-400">-</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="text-center">
                                             <?php if ($material['record_count'] > 0): ?>
                                                 <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">

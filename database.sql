@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS `raw_materials` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
     `material_code` varchar(50) NOT NULL COMMENT 'รหัสวัตถุดิบ',
     `material_name` varchar(255) NOT NULL COMMENT 'ชื่อวัตถุดิบ',
-    `unit` varchar(50) NOT NULL COMMENT 'หน่วยนับ',
+    `unit` varchar(50) NOT NULL COMMENT 'หน่วยหลัก',
+    `sub_unit` varchar(50) DEFAULT NULL COMMENT 'หน่วยย่อย',
     `current_stock` decimal(10,2) DEFAULT 0.00 COMMENT 'สต็อกปัจจุบัน',
     `display_order` int(11) DEFAULT 0 COMMENT 'ลำดับการแสดงผล',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -65,20 +66,20 @@ INSERT INTO `employees` (`full_name`, `employee_name`) VALUES
 ('นางสาวสมหญิง รักงาน', 'สมหญิง'),
 ('นายพิชิต มานะดี', 'พิชิต');
 
-INSERT INTO `raw_materials` (`material_code`, `material_name`, `unit`, `display_order`) VALUES
-('MILK001', 'นม', 'ลิตร', 1),
-('SUGAR001', 'น้ำตาล', 'กิโลกรัม', 2),
-('COFFEE001', 'กาแฟ', 'กิโลกรัม', 3),
-('TEA001', 'ชา', 'กิโลกรัม', 4),
-('CHOC001', 'ช็อก', 'กิโลกรัม', 5),
-('DARK001', 'ดาร์ก', 'กิโลกรัม', 6),
-('WHITE001', 'ไวท์', 'กิโลกรัม', 7),
-('MILK_CON001', 'นมข้น', 'กระป๋อง', 8),
-('SYRUP_OR001', 'ไซรัปส้ม', 'ขวด', 9),
-('SYRUP_ST001', 'ไซรัปสตรอว์เบอรี่', 'ขวด', 10),
-('SYRUP_MI001', 'ไซรัปมิ้นท์', 'ขวด', 11),
-('SYRUP_GO001', 'ไซรัปทอง', 'ขวด', 12),
-('WATER001', 'น้ำเปล่า', 'ลิตร', 13),
-('DIP001', 'ดิป', 'กิโลกรัม', 14);
+INSERT INTO `raw_materials` (`material_code`, `material_name`, `unit`, `sub_unit`, `display_order`) VALUES
+('MILK001', 'นม', 'ถุง', 'ลิตร', 1),
+('SUGAR001', 'น้ำตาล', 'ถุง', 'กิโลกรัม', 2),
+('COFFEE001', 'กาแฟ', 'ถุง', 'กิโลกรัม', 3),
+('TEA001', 'ชา', 'ถุง', 'กิโลกรัม', 4),
+('CHOC001', 'ช็อก', 'ถุง', 'กิโลกรัม', 5),
+('DARK001', 'ดาร์ก', 'ถุง', 'กิโลกรัม', 6),
+('WHITE001', 'ไวท์', 'ถุง', 'กิโลกรัม', 7),
+('MILK_CON001', 'นมข้น', 'กระป๋อง', 'มิลลิลิตร', 8),
+('SYRUP_OR001', 'ไซรัปส้ม', 'ขวด', 'มิลลิลิตร', 9),
+('SYRUP_ST001', 'ไซรัปสตรอว์เบอรี่', 'ขวด', 'มิลลิลิตร', 10),
+('SYRUP_MI001', 'ไซรัปมิ้นท์', 'ขวด', 'มิลลิลิตร', 11),
+('SYRUP_GO001', 'ไซรัปทอง', 'ขวด', 'มิลลิลิตร', 12),
+('WATER001', 'น้ำเปล่า', 'ขวด', 'ลิตร', 13),
+('DIP001', 'ดิป', 'ถุง', 'กิโลกรัม', 14);
 
 SET FOREIGN_KEY_CHECKS = 1;

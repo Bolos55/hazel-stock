@@ -16,7 +16,8 @@ try {
             dsr.submitted_at,
             e.full_name as employee_name,
             rm.material_name,
-            rm.unit
+            rm.unit,
+            rm.sub_unit
         FROM daily_stock_records dsr
         JOIN employees e ON dsr.employee_id = e.id
         JOIN raw_materials rm ON dsr.material_id = rm.id
@@ -265,7 +266,12 @@ try {
                                 <?php foreach ($records as $record): ?>
                                     <tr class="hover:bg-gray-50">
                                         <td class="border border-gray-300 px-4 py-2"><?= htmlspecialchars($record['material_name']) ?></td>
-                                        <td class="border border-gray-300 px-4 py-2 text-center"><?= htmlspecialchars($record['unit']) ?></td>
+                                        <td class="border border-gray-300 px-4 py-2 text-center">
+                                            <?= htmlspecialchars($record['unit']) ?>
+                                            <?php if ($record['sub_unit']): ?>
+                                                <br><span class="text-xs text-gray-600"><?= htmlspecialchars($record['sub_unit']) ?></span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="border border-gray-300 px-4 py-2 text-right font-mono">
                                             <?= number_format($record['remaining_quantity'], 2) ?>
                                         </td>
