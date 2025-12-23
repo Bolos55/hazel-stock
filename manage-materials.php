@@ -268,6 +268,8 @@ if (isset($_GET['edit'])) {
             border-radius: 0.25rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            display: inline-block;
+            text-decoration: none;
         }
         .btn-edit {
             background: #3b82f6;
@@ -282,40 +284,6 @@ if (isset($_GET['edit'])) {
         }
         .btn-delete:hover {
             background: #dc2626;
-        }
-        .edit-inline {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            width: 100%;
-        }
-        .edit-inline button {
-            padding: 0.125rem 0.25rem;
-            font-size: 0.75rem;
-            min-width: auto;
-            flex-shrink: 0;
-        }
-        .edit-inline span {
-            font-size: 0.75rem;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-        
-        /* Make sure text is visible */
-        .material-table td .edit-inline span {
-            color: #374151;
-            font-weight: 500;
-        }
-        
-        /* Column specific styling */
-        .material-table td:nth-child(4) .edit-inline span { /* หน่วยหลัก */
-            font-weight: 600;
-            color: #1f2937;
-        }
-        
-        .material-table td:nth-child(5) .edit-inline span { /* หน่วยย่อย */
-            font-weight: 500;
-            color: #6b7280;
         }
         .form-group {
             margin-bottom: 1rem;
@@ -493,7 +461,7 @@ if (isset($_GET['edit'])) {
                 <div class="alert alert-info mb-4">
                     <p><strong>💡 วิธีใช้:</strong></p>
                     <ul class="list-disc list-inside text-sm mt-2 space-y-1">
-                        <li>คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> เพื่อแก้ไขข้อมูลแต่ละฟิลด์</li>
+                        <li>คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️ แก้ไข</span> ในคอลัมน์จัดการเพื่อแก้ไขข้อมูล</li>
                         <li>คลิก <span class="bg-gray-500 text-white px-2 py-1 rounded text-xs">📱 กะทัดรัด</span> เพื่อลดขนาดตาราง</li>
                         <li>คลิก <span class="bg-purple-500 text-white px-2 py-1 rounded text-xs">👁️ ซ่อน/แสดง</span> เพื่อจัดการคอลัมน์</li>
                         <li>คลิก <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">🔥 ขั้นต่ำ</span> เพื่อแสดงเฉพาะข้อมูลสำคัญ</li>
@@ -527,45 +495,17 @@ if (isset($_GET['edit'])) {
                             <tbody>
                                 <?php foreach ($materials as $material): ?>
                                     <tr>
-                                        <td class="text-center">
-                                            <div class="edit-inline justify-center">
-                                                <button onclick="editField(<?= $material['id'] ?>, 'display_order', '<?= $material['display_order'] ?>', 'ลำดับแสดง', 'number')" 
-                                                        class="btn-small btn-edit" title="แก้ไขลำดับ">✏️</button>
-                                                <?= $material['display_order'] ?>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="edit-inline">
-                                                <button onclick="editField(<?= $material['id'] ?>, 'material_code', '<?= htmlspecialchars($material['material_code']) ?>', 'รหัสวัตถุดิบ')" 
-                                                        class="btn-small btn-edit" title="แก้ไขรหัส">✏️</button>
-                                                <span class="font-mono text-sm"><?= htmlspecialchars($material['material_code']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="edit-inline">
-                                                <button onclick="editField(<?= $material['id'] ?>, 'material_name', '<?= htmlspecialchars($material['material_name']) ?>', 'ชื่อวัตถุดิบ')" 
-                                                        class="btn-small btn-edit" title="แก้ไขชื่อ">✏️</button>
-                                                <span class="font-semibold"><?= htmlspecialchars($material['material_name']) ?></span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div class="edit-inline">
-                                                <button onclick="editField(<?= $material['id'] ?>, 'unit', '<?= htmlspecialchars($material['unit']) ?>', 'หน่วยหลัก')" 
-                                                        class="btn-small btn-edit" title="แก้ไขหน่วยหลัก">✏️</button>
-                                                <span class="font-medium"><?= htmlspecialchars($material['unit']) ?></span>
-                                            </div>
-                                        </td>
+                                        <td class="text-center"><?= $material['display_order'] ?></td>
+                                        <td class="font-mono text-sm"><?= htmlspecialchars($material['material_code']) ?></td>
+                                        <td class="font-semibold"><?= htmlspecialchars($material['material_name']) ?></td>
+                                        <td class="font-medium"><?= htmlspecialchars($material['unit']) ?></td>
                                         <?php if ($hasSubUnit): ?>
                                         <td class="hide-mobile">
-                                            <div class="edit-inline">
-                                                <button onclick="editField(<?= $material['id'] ?>, 'sub_unit', '<?= htmlspecialchars($material['sub_unit'] ?? '') ?>', 'หน่วยย่อย')" 
-                                                        class="btn-small btn-edit" title="แก้ไขหน่วยย่อย">✏️</button>
-                                                <?php if (!empty($material['sub_unit'])): ?>
-                                                    <span class="text-gray-700"><?= htmlspecialchars($material['sub_unit']) ?></span>
-                                                <?php else: ?>
-                                                    <span class="text-gray-400">-</span>
-                                                <?php endif; ?>
-                                            </div>
+                                            <?php if (!empty($material['sub_unit'])): ?>
+                                                <span class="text-gray-700"><?= htmlspecialchars($material['sub_unit']) ?></span>
+                                            <?php else: ?>
+                                                <span class="text-gray-400">-</span>
+                                            <?php endif; ?>
                                         </td>
                                         <?php endif; ?>
                                         <td class="text-center hide-mobile">
@@ -593,8 +533,7 @@ if (isset($_GET['edit'])) {
                                                 <button onclick="deleteMaterial(<?= $material['id'] ?>, '<?= htmlspecialchars($material['material_name']) ?>')" 
                                                         class="btn-small btn-delete">🗑️ ลบ</button>
                                             <?php else: ?>
-                                                <button onclick="editMaterialInline(<?= $material['id'] ?>, '<?= htmlspecialchars($material['material_name']) ?>', '<?= htmlspecialchars($material['unit']) ?>', '<?= htmlspecialchars($material['sub_unit']) ?>')" 
-                                                        class="btn-small" style="background: #f59e0b; color: white;">📝 แก้ไขด่วน</button>
+                                                <span class="text-xs text-gray-500 block mt-1">มีข้อมูลแล้ว</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -618,37 +557,6 @@ if (isset($_GET['edit'])) {
             if (confirm(`คุณต้องการลบวัตถุดิบ "${name}" หรือไม่?\n\n⚠️ หากวัตถุดิบนี้มีข้อมูลการบันทึกแล้ว จะไม่สามารถลบได้`)) {
                 document.getElementById('deleteId').value = id;
                 document.getElementById('deleteForm').submit();
-            }
-        }
-        
-        function editField(id, field, currentValue, fieldLabel, inputType = 'text') {
-            let newValue;
-            
-            if (inputType === 'number') {
-                newValue = prompt(`แก้ไข${fieldLabel}:`, currentValue);
-                if (newValue !== null) {
-                    newValue = parseInt(newValue);
-                    if (isNaN(newValue) || newValue < 1) {
-                        alert('กรุณากรอกตัวเลขที่ถูกต้อง (มากกว่า 0)');
-                        return;
-                    }
-                }
-            } else {
-                newValue = prompt(`แก้ไข${fieldLabel}:`, currentValue);
-            }
-            
-            if (newValue !== null && newValue.toString().trim() !== '' && newValue.toString() !== currentValue.toString()) {
-                // Create a form to submit the change
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.innerHTML = `
-                    <input type="hidden" name="action" value="quick_edit">
-                    <input type="hidden" name="id" value="${id}">
-                    <input type="hidden" name="field" value="${field}">
-                    <input type="hidden" name="value" value="${newValue.toString().trim()}">
-                `;
-                document.body.appendChild(form);
-                form.submit();
             }
         }
         
@@ -697,22 +605,6 @@ if (isset($_GET['edit'])) {
             }
         }
         
-        // Auto-hide columns on small screens
-        function checkScreenSize() {
-            const hiddenCols = document.querySelectorAll('.hide-mobile');
-            const btn = document.getElementById('columnsBtn');
-            
-            if (window.innerWidth <= 768) {
-                hiddenCols.forEach(col => col.classList.add('force-hide'));
-                btn.textContent = '👁️ แสดง';
-                btn.style.background = '#059669';
-            } else {
-                hiddenCols.forEach(col => col.classList.remove('force-hide'));
-                btn.textContent = '👁️ ซ่อน';
-                btn.style.background = '#8b5cf6';
-            }
-        }
-        
         // Force minimal mode - show only essential columns
         function forceMinimal() {
             // Hide: รหัส, จำนวนการบันทึก, บันทึกล่าสุด, วันที่เพิ่ม
@@ -739,14 +631,25 @@ if (isset($_GET['edit'])) {
             }
         }
         
+        // Auto-hide columns on small screens
+        function checkScreenSize() {
+            const hiddenCols = document.querySelectorAll('.hide-mobile');
+            const btn = document.getElementById('columnsBtn');
+            
+            if (window.innerWidth <= 768) {
+                hiddenCols.forEach(col => col.classList.add('force-hide'));
+                btn.textContent = '👁️ แสดง';
+                btn.style.background = '#059669';
+            } else {
+                hiddenCols.forEach(col => col.classList.remove('force-hide'));
+                btn.textContent = '👁️ ซ่อน';
+                btn.style.background = '#8b5cf6';
+            }
+        }
+        
         // Check on load and resize
         window.addEventListener('load', checkScreenSize);
         window.addEventListener('resize', checkScreenSize);
-        
-        // Legacy function for backward compatibility
-        function editMaterialInline(id, currentName, currentUnit, currentSubUnit) {
-            editField(id, 'material_name', currentName, 'ชื่อวัตถุดิบ');
-        }
     </script>
 </body>
 </html>
