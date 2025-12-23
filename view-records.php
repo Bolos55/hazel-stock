@@ -11,11 +11,12 @@ try {
     $stmt = $db->prepare("
         SELECT 
             dsr.record_date,
+            dsr.remaining_quantity,
+            dsr.photo_path,
+            dsr.submitted_at,
             e.full_name as employee_name,
             rm.material_name,
-            rm.unit,
-            dsr.remaining_quantity,
-            dsr.submitted_at
+            rm.unit
         FROM daily_stock_records dsr
         JOIN employees e ON dsr.employee_id = e.id
         JOIN raw_materials rm ON dsr.material_id = rm.id
@@ -256,6 +257,7 @@ try {
                                     <th class="border border-gray-300 px-4 py-2 text-left">วัตถุดิบ</th>
                                     <th class="border border-gray-300 px-4 py-2 text-center">หน่วย</th>
                                     <th class="border border-gray-300 px-4 py-2 text-right">จำนวนคงเหลือ</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-center">รูปภาพ</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -265,6 +267,23 @@ try {
                                         <td class="border border-gray-300 px-4 py-2 text-center"><?= htmlspecialchars($record['unit']) ?></td>
                                         <td class="border border-gray-300 px-4 py-2 text-right font-mono">
                                             <?= number_format($record['remaining_quantity'], 2) ?>
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-center">
+                                            <?php if (!empty($record['photo_path']) && $record['photo_path'] !== 'no-photo.jpg'): ?>
+                                                <?php 
+                                                $photoPath = 'stock-photos/' . $record['photo_path'];
+                                                if (file_exists($photoPath)): 
+                                                ?>
+                                                    <img src="<?= $photoPath ?>" 
+                                                         alt="รูปสต็อก" 
+                                                         class="w-16 h-12 object-cover rounded border cursor-pointer"
+                                                         onclick="showPhotoModal('<?= $photoPath ?>', '<?= htmlspecialchars($record['material_name']) ?>')">
+                                                <?php else: ?>
+                                                    <span class="text-red-500 text-xs">ไม่พบรูป</span>
+                                                <?php endif; ?>
+                                            <?php else: ?>
+                                                <span class="text-gray-500 text-xs">ไม่มีรูป</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -368,6 +387,39 @@ try {
                 button.disabled = false;
             }
         }
+        
+        // Photo modal functions
+        function showPhotoModal(photoPath, materialName) {
+            document.getElementById('photoModalImg').src = photoPath;
+            document.getElementById('photoTitle').textContent = 'รูปภาพ: ' + materialName;
+            document.getElementById('photoModal').classList.remove('hidden');
+        }
+        
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.add('hidden');
+        }
+        
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePhotoModal();
+            }
+        });
     </script>
+
+    <!-- Photo Modal -->
+    <div id="photoModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center" onclick="closePhotoModal()">
+        <div class="max-w-4xl max-h-full p-4" onclick="event.stopPropagation()">
+            <div class="bg-white rounded-lg overflow-hidden">
+                <div class="p-4 border-b flex justify-between items-center">
+                    <h3 id="photoTitle" class="text-lg font-semibold"></h3>
+                    <button onclick="closePhotoModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
+                </div>
+                <div class="p-4">
+                    <img id="photoModalImg" src="" alt="" class="max-w-full max-h-96 mx-auto rounded">
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

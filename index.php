@@ -648,6 +648,8 @@
             }
             
             try {
+                console.log('Submitting stock data:', stockData); // Debug log
+                
                 const response = await fetch('/api/submit-stock.php', {
                     method: 'POST',
                     headers: {
