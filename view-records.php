@@ -258,15 +258,10 @@ try {
                             <a href="/api/export-csv.php?date=<?= $date ?>" 
                                class="btn-primary" 
                                style="background: #10b981; display: inline-block; text-decoration: none;">
-                                📊 Export CSV
-                            </a>
-                            <a href="/api/export-excel.php?date=<?= $date ?>" 
-                               class="btn-primary" 
-                               style="background: #3b82f6; display: inline-block; text-decoration: none;">
-                                📈 Export Excel
+                                📊 Export CSV (Excel ใช้ได้)
                             </a>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2">CSV: ใช้งานได้เลย | Excel: ต้องติดตั้ง PhpSpreadsheet</p>
+                        <p class="text-xs text-gray-500 mt-2">ไฟล์ CSV สามารถเปิดใน Excel ได้ทันที</p>
                     </div>
                 </div>
             <?php endif; ?>
