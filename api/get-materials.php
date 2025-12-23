@@ -7,11 +7,29 @@ try {
     // Try to get database connection
     $db = Database::getInstance()->getConnection();
 
-    $stmt = $db->query("
-        SELECT id, material_name, unit
-        FROM raw_materials
-        ORDER BY display_order ASC, material_name ASC
-    ");
+    // Try to get materials with sub_unit first
+    try {
+        $stmt = $db->query("
+            SELECT 
+                id, 
+                material_name, 
+                unit,
+                COALESCE(sub_unit, '') as sub_unit
+            FROM raw_materials
+            ORDER BY display_order ASC, material_name ASC
+        ");
+    } catch (Exception $e) {
+        // If sub_unit column doesn't exist, fall back to basic query
+        $stmt = $db->query("
+            SELECT 
+                id, 
+                material_name, 
+                unit,
+                '' as sub_unit
+            FROM raw_materials
+            ORDER BY display_order ASC, material_name ASC
+        ");
+    }
 
     $materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

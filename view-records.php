@@ -8,23 +8,43 @@ try {
     $date = $_GET['date'] ?? date('Y-m-d');
     
     // Get records for the date (optimized query)
-    $stmt = $db->prepare("
-        SELECT 
-            dsr.record_date,
-            dsr.remaining_quantity,
-            dsr.photo_path,
-            dsr.submitted_at,
-            e.full_name as employee_name,
-            rm.material_name,
-            rm.unit,
-            rm.sub_unit
-        FROM daily_stock_records dsr
-        FORCE INDEX (idx_record_date)
-        JOIN employees e ON dsr.employee_id = e.id
-        JOIN raw_materials rm ON dsr.material_id = rm.id
-        WHERE dsr.record_date = ?
-        ORDER BY rm.display_order ASC
-    ");
+    try {
+        $stmt = $db->prepare("
+            SELECT 
+                dsr.record_date,
+                dsr.remaining_quantity,
+                dsr.photo_path,
+                dsr.submitted_at,
+                e.full_name as employee_name,
+                rm.material_name,
+                rm.unit,
+                COALESCE(rm.sub_unit, '') as sub_unit
+            FROM daily_stock_records dsr
+            FORCE INDEX (idx_record_date)
+            JOIN employees e ON dsr.employee_id = e.id
+            JOIN raw_materials rm ON dsr.material_id = rm.id
+            WHERE dsr.record_date = ?
+            ORDER BY rm.display_order ASC
+        ");
+    } catch (Exception $e) {
+        // Fallback if sub_unit column doesn't exist
+        $stmt = $db->prepare("
+            SELECT 
+                dsr.record_date,
+                dsr.remaining_quantity,
+                dsr.photo_path,
+                dsr.submitted_at,
+                e.full_name as employee_name,
+                rm.material_name,
+                rm.unit,
+                '' as sub_unit
+            FROM daily_stock_records dsr
+            JOIN employees e ON dsr.employee_id = e.id
+            JOIN raw_materials rm ON dsr.material_id = rm.id
+            WHERE dsr.record_date = ?
+            ORDER BY rm.display_order ASC
+        ");
+    }
     $stmt->execute([$date]);
     $records = $stmt->fetchAll();
     

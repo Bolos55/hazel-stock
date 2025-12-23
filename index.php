@@ -311,6 +311,7 @@
                     <a href="/manage-employees.php" class="inline-block bg-green-500 text-black px-3 py-1 rounded text-xs hover:bg-green-600 hover:text-white font-semibold">👥 จัดการพนักงาน</a>
                     <a href="/manage-materials.php" class="inline-block bg-purple-500 text-black px-3 py-1 rounded text-xs hover:bg-purple-600 hover:text-white font-semibold">🧪 จัดการวัตถุดิบ</a>
                     <a href="/add-stock.php" class="inline-block bg-orange-500 text-black px-3 py-1 rounded text-xs hover:bg-orange-600 hover:text-white font-semibold">📦 เพิ่มสต็อกเข้า</a>
+                    <a href="/migrate.php" class="inline-block bg-red-500 text-black px-3 py-1 rounded text-xs hover:bg-red-600 hover:text-white font-semibold">🔄 อัพเดท DB</a>
                     <button onclick="toggleDebug()" class="bg-yellow-500 text-black px-3 py-1 rounded text-xs hover:bg-yellow-600 hover:text-white font-semibold">🔧 System Status</button>
                 </div>
             </div>
