@@ -213,7 +213,7 @@ $isSetupMode = true;
 
         // Step 1: Check Environment Variables
         async function checkEnvironment() {
-            const response = await fetch('/test-basic.php');
+            const response = await fetch('./test-basic.php');
             const data = await response.json();
             
             if (data.success) {
@@ -241,7 +241,7 @@ $isSetupMode = true;
         // Step 2: Test Database Connection
         async function testDatabaseConnection() {
             try {
-                const response = await fetch('/test-config.php');
+                const response = await fetch('./test-config.php');
                 const text = await response.text();
                 
                 if (text.includes('All basic tests passed')) {
@@ -275,7 +275,7 @@ $isSetupMode = true;
         // Step 3: Check Database Tables
         async function checkTables() {
             try {
-                const response = await fetch('/api/get-materials.php');
+                const response = await fetch('./api/get-materials.php');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -309,8 +309,8 @@ $isSetupMode = true;
         // Step 4: Test APIs
         async function testAPIs() {
             const apis = [
-                { url: '/api/get-today-record.php', name: 'Today Record API' },
-                { url: '/api/get-materials.php', name: 'Materials API' }
+                { url: './api/get-today-record.php', name: 'Today Record API' },
+                { url: './api/get-materials.php', name: 'Materials API' }
             ];
 
             let successCount = 0;
@@ -365,7 +365,7 @@ $isSetupMode = true;
         async function createTables() {
             if (confirm('คุณต้องการสร้าง Database Tables ใหม่หรือไม่?')) {
                 try {
-                    const response = await fetch('/setup-database.php', { method: 'POST' });
+                    const response = await fetch('./setup-database.php', { method: 'POST' });
                     const data = await response.json();
                     
                     if (data.success) {
