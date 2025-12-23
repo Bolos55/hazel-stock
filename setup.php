@@ -116,8 +116,9 @@ $isSetupMode = true;
 
         <div class="text-center mt-6">
             <button class="btn-setup" onclick="runSetup()">🚀 เริ่มการตรวจสอบ</button>
-            <button class="btn-setup btn-success" onclick="createTables()" id="btnCreateTables" style="display: none;">📊 สร้าง Database Tables</button>
+            <button class="btn-setup btn-success" onclick="createTables()" id="btnCreateTables">📊 สร้าง Database Tables</button>
             <button class="btn-setup btn-danger" onclick="resetSetup()">🔄 เริ่มใหม่</button>
+            <button class="btn-setup" onclick="directCreateTables()" style="background: #f59e0b;">⚡ สร้าง Tables ตรงๆ</button>
         </div>
 
         <div class="mt-8 p-4 bg-gray-50 rounded-lg">
@@ -408,6 +409,82 @@ $isSetupMode = true;
 
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Direct create tables without checks
+        async function directCreateTables() {
+            if (confirm('สร้าง Database Tables ตรงๆ เลยไหม? (ข้ามการตรวจสอบ)')) {
+                try {
+                    // Show loading
+                    document.getElementById('setupSteps').innerHTML = `
+                        <div class="step warning">
+                            <div class="flex items-center">
+                                <span class="status-icon">⏳</span>
+                                <h3 class="font-semibold">กำลังสร้าง Database Tables...</h3>
+                            </div>
+                            <div class="step-content mt-2">
+                                <p class="text-yellow-700">กรุณารอสักครู่...</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // Try multiple ways to call setup-database.php
+                    let response;
+                    let data;
+                    
+                    try {
+                        response = await fetch('./setup-database.php', { method: 'POST' });
+                        data = await response.json();
+                    } catch (e1) {
+                        try {
+                            response = await fetch('/setup-database.php', { method: 'POST' });
+                            data = await response.json();
+                        } catch (e2) {
+                            try {
+                                response = await fetch('setup-database.php', { method: 'POST' });
+                                data = await response.json();
+                            } catch (e3) {
+                                throw new Error('ไม่สามารถเข้าถึง setup-database.php ได้');
+                            }
+                        }
+                    }
+                    
+                    if (data.success) {
+                        document.getElementById('setupSteps').innerHTML = `
+                            <div class="step success text-center">
+                                <h2 class="text-2xl font-bold text-green-600 mb-4">🎉 สร้าง Database สำเร็จ!</h2>
+                                <p class="text-green-700 mb-4">Tables: ${data.details.tables_created.join(', ')}</p>
+                                <p class="text-green-700 mb-4">พนักงาน: ${data.details.employees_inserted} คน | วัตถุดิบ: ${data.details.materials_inserted} รายการ</p>
+                                <a href="/" class="btn-primary" style="display: inline-block; text-decoration: none; background: #10b981; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem;">
+                                    เข้าสู่ระบบ
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        document.getElementById('setupSteps').innerHTML = `
+                            <div class="step error">
+                                <h3 class="font-semibold text-red-600">❌ เกิดข้อผิดพลาด</h3>
+                                <p class="text-red-700 mt-2">${data.message}</p>
+                                <div class="mt-2 text-sm text-gray-600">
+                                    <p>Host: ${data.details?.host || 'ไม่ทราบ'}</p>
+                                    <p>Database: ${data.details?.database || 'ไม่ทราบ'}</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    document.getElementById('setupSteps').innerHTML = `
+                        <div class="step error">
+                            <h3 class="font-semibold text-red-600">❌ เกิดข้อผิดพลาด</h3>
+                            <p class="text-red-700 mt-2">${error.message}</p>
+                            <div class="mt-2 text-sm text-gray-600">
+                                <p>ลองตรวจสอบ Environment Variables บน Render.com</p>
+                                <p>หรือลองเข้าไปที่ setup-database.php ตรงๆ</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
         }
     </script>
 </body>
