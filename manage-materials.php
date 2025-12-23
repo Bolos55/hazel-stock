@@ -187,32 +187,47 @@ if (isset($_GET['edit'])) {
     <title>จัดการวัตถุดิบ - Hazel</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
+        /* Responsive table - Force smaller sizes */
         .material-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
-            font-size: 0.875rem;
+            font-size: 0.75rem; /* Smaller by default */
+            table-layout: fixed; /* Force column widths */
         }
+        
         .material-table th,
         .material-table td {
             border: 1px solid #d1d5db;
-            padding: 0.5rem;
+            padding: 0.375rem; /* Smaller padding */
             text-align: left;
             vertical-align: top;
+            word-wrap: break-word;
+            overflow: hidden;
         }
+        
+        /* Column widths */
+        .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 8%; } /* ลำดับ */
+        .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 15%; } /* รหัส */
+        .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 20%; } /* ชื่อ */
+        .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 12%; } /* หน่วยหลัก */
+        .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 10%; } /* หน่วยย่อย */
+        .material-table th:nth-child(9), .material-table td:nth-child(9) { width: 15%; } /* จัดการ */
+        
         .material-table th {
             background: #f9fafb;
             font-weight: 600;
-            font-size: 0.75rem;
+            font-size: 0.625rem; /* Even smaller headers */
         }
+        
         .material-table tr:hover {
             background: #f9fafb;
         }
         
-        /* Responsive table */
+        /* Mobile optimizations */
         @media (max-width: 768px) {
             .material-table {
-                font-size: 0.75rem;
+                font-size: 0.625rem; /* Very small on mobile */
             }
             .material-table th,
             .material-table td {
@@ -220,26 +235,30 @@ if (isset($_GET['edit'])) {
             }
             .edit-inline {
                 flex-direction: column;
-                gap: 0.25rem;
+                gap: 0.125rem;
             }
             .edit-inline button {
-                font-size: 0.625rem;
+                font-size: 0.5rem;
                 padding: 0.125rem 0.25rem;
+                min-width: 20px;
+            }
+            .edit-inline span {
+                font-size: 0.625rem;
             }
         }
         
-        /* Hide less important columns on mobile */
-        @media (max-width: 640px) {
-            .hide-mobile {
-                display: none;
-            }
+        /* Force hide columns */
+        .force-hide {
+            display: none !important;
         }
         
         /* Compact mode */
+        .table-compact .material-table {
+            font-size: 0.625rem;
+        }
         .table-compact .material-table th,
         .table-compact .material-table td {
-            padding: 0.25rem;
-            font-size: 0.75rem;
+            padding: 0.125rem;
         }
         .btn-small {
             padding: 0.25rem 0.75rem;
@@ -441,6 +460,9 @@ if (isset($_GET['edit'])) {
                         <button onclick="toggleMobileColumns()" id="columnsBtn" class="btn-small" style="background: #8b5cf6; color: white;">
                             👁️ ซ่อน/แสดง
                         </button>
+                        <button onclick="forceMinimal()" id="minimalBtn" class="btn-small" style="background: #ef4444; color: white;">
+                            🔥 ขั้นต่ำ
+                        </button>
                     </div>
                 </div>
                 
@@ -450,7 +472,8 @@ if (isset($_GET['edit'])) {
                         <li>คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> เพื่อแก้ไขข้อมูล</li>
                         <li>คลิก <span class="bg-gray-500 text-white px-2 py-1 rounded text-xs">📱 กะทัดรัด</span> เพื่อลดขนาดตาราง</li>
                         <li>คลิก <span class="bg-purple-500 text-white px-2 py-1 rounded text-xs">👁️ ซ่อน/แสดง</span> เพื่อจัดการคอลัมน์</li>
-                        <li>หน้าจอเล็กจะซ่อนคอลัมน์ไม่สำคัญอัตโนมัติ</li>
+                        <li>คลิก <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">🔥 ขั้นต่ำ</span> เพื่อแสดงเฉพาะข้อมูลสำคัญ</li>
+                        <li><strong>หน่วย:</strong> แสดงทั้งหน่วยหลักและหน่วยย่อย (เช่น ถุง/ลิตร)</li>
                     </ul>
                 </div>
                 
@@ -467,9 +490,9 @@ if (isset($_GET['edit'])) {
                                     <th>ลำดับ</th>
                                     <th>รหัส</th>
                                     <th>ชื่อวัตถุดิบ</th>
-                                    <th><?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?></th>
+                                    <th>หน่วย<?= $hasSubUnit ? ' (หลัก/ย่อย)' : '' ?></th>
                                     <?php if ($hasSubUnit): ?>
-                                    <th class="hide-mobile">หน่วยย่อย</th>
+                                    <th class="hide-mobile">หน่วยย่อย (แยก)</th>
                                     <?php endif; ?>
                                     <th class="hide-mobile">จำนวนการบันทึก</th>
                                     <th class="hide-mobile">บันทึกล่าสุด</th>
@@ -505,7 +528,12 @@ if (isset($_GET['edit'])) {
                                             <div class="edit-inline">
                                                 <button onclick="editField(<?= $material['id'] ?>, 'unit', '<?= htmlspecialchars($material['unit']) ?>', '<?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?>')" 
                                                         class="btn-small btn-edit" title="แก้ไขหน่วย">✏️</button>
-                                                <?= htmlspecialchars($material['unit']) ?>
+                                                <div>
+                                                    <div class="font-semibold"><?= htmlspecialchars($material['unit']) ?></div>
+                                                    <?php if ($hasSubUnit && !empty($material['sub_unit'])): ?>
+                                                        <div class="text-xs text-gray-600">/ <?= htmlspecialchars($material['sub_unit']) ?></div>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </td>
                                         <?php if ($hasSubUnit): ?>
@@ -621,17 +649,30 @@ if (isset($_GET['edit'])) {
             }
         }
         
-        // Toggle mobile columns
+        // Toggle mobile columns - Force hide with !important
         function toggleMobileColumns() {
             const hiddenCols = document.querySelectorAll('.hide-mobile');
             const btn = document.getElementById('columnsBtn');
             
-            if (hiddenCols[0].style.display === 'none') {
-                hiddenCols.forEach(col => col.style.display = '');
+            let isHidden = false;
+            hiddenCols.forEach(col => {
+                if (col.classList.contains('force-hide')) {
+                    isHidden = true;
+                }
+            });
+            
+            if (isHidden) {
+                // Show columns
+                hiddenCols.forEach(col => {
+                    col.classList.remove('force-hide');
+                });
                 btn.textContent = '👁️ ซ่อน';
                 btn.style.background = '#8b5cf6';
             } else {
-                hiddenCols.forEach(col => col.style.display = 'none');
+                // Hide columns
+                hiddenCols.forEach(col => {
+                    col.classList.add('force-hide');
+                });
                 btn.textContent = '👁️ แสดง';
                 btn.style.background = '#059669';
             }
@@ -639,11 +680,41 @@ if (isset($_GET['edit'])) {
         
         // Auto-hide columns on small screens
         function checkScreenSize() {
-            if (window.innerWidth <= 640) {
-                const hiddenCols = document.querySelectorAll('.hide-mobile');
-                hiddenCols.forEach(col => col.style.display = 'none');
-                document.getElementById('columnsBtn').textContent = '👁️ แสดง';
-                document.getElementById('columnsBtn').style.background = '#059669';
+            const hiddenCols = document.querySelectorAll('.hide-mobile');
+            const btn = document.getElementById('columnsBtn');
+            
+            if (window.innerWidth <= 768) {
+                hiddenCols.forEach(col => col.classList.add('force-hide'));
+                btn.textContent = '👁️ แสดง';
+                btn.style.background = '#059669';
+            } else {
+                hiddenCols.forEach(col => col.classList.remove('force-hide'));
+                btn.textContent = '👁️ ซ่อน';
+                btn.style.background = '#8b5cf6';
+            }
+        }
+        
+        // Force minimal mode - show only essential columns
+        function forceMinimal() {
+            const allHideable = document.querySelectorAll('.hide-mobile, th:nth-child(2), td:nth-child(2)'); // Hide รหัส too
+            const btn = document.getElementById('minimalBtn');
+            
+            let isMinimal = btn.textContent.includes('ปกติ');
+            
+            if (isMinimal) {
+                // Show all
+                allHideable.forEach(col => {
+                    col.classList.remove('force-hide');
+                });
+                btn.textContent = '🔥 ขั้นต่ำ';
+                btn.style.background = '#ef4444';
+            } else {
+                // Hide everything except: ลำดับ, ชื่อ, หน่วย, จัดการ
+                allHideable.forEach(col => {
+                    col.classList.add('force-hide');
+                });
+                btn.textContent = '🔥 ปกติ';
+                btn.style.background = '#059669';
             }
         }
         
