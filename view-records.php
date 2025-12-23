@@ -221,6 +221,11 @@ try {
                     <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
                     <h3 class="text-lg font-semibold mb-2">ไม่มีข้อมูลสต็อก</h3>
                     <p class="text-gray-600 mb-4">วันที่ <?= date('d/m/Y', strtotime($date)) ?></p>
+                    <?php if (isset($_GET['error']) && $_GET['error'] === 'no_data'): ?>
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+                            ⚠️ ไม่สามารถแก้ไขได้เพราะไม่มีข้อมูลสำหรับวันที่นี้
+                        </div>
+                    <?php endif; ?>
                     <a href="/" class="btn-primary">บันทึกสต็อกใหม่</a>
                 </div>
             <?php else: ?>
@@ -230,6 +235,14 @@ try {
                         <h3 class="text-lg font-semibold">ข้อมูลสต็อกวันที่ <?= date('d/m/Y', strtotime($date)) ?></h3>
                         <p class="text-gray-600">พนักงาน: <strong class="text-red-600"><?= htmlspecialchars($records[0]['employee_name']) ?></strong></p>
                         <p class="text-sm text-gray-500">บันทึกเมื่อ: <?= date('H:i น.', strtotime($records[0]['submitted_at'])) ?></p>
+                        
+                        <!-- Edit Button -->
+                        <div class="mt-3">
+                            <a href="/edit-record.php?date=<?= $date ?>" 
+                               class="inline-block bg-orange-500 text-white px-4 py-2 rounded text-sm hover:bg-orange-600 transition-colors">
+                                ✏️ แก้ไขข้อมูล
+                            </a>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
