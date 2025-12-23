@@ -237,11 +237,15 @@ try {
                         <p class="text-sm text-gray-500">บันทึกเมื่อ: <?= date('H:i น.', strtotime($records[0]['submitted_at'])) ?></p>
                         
                         <!-- Edit Button -->
-                        <div class="mt-3">
+                        <div class="mt-3 space-x-2">
                             <a href="/edit-record.php?date=<?= $date ?>" 
                                class="inline-block bg-orange-500 text-white px-4 py-2 rounded text-sm hover:bg-orange-600 transition-colors">
                                 ✏️ แก้ไขข้อมูล
                             </a>
+                            <button onclick="deleteRecord('<?= $date ?>')" 
+                                    class="bg-red-500 text-white px-4 py-2 rounded text-sm hover:bg-red-600 transition-colors">
+                                🗑️ ลบข้อมูล
+                            </button>
                         </div>
                     </div>
                     
@@ -316,6 +320,53 @@ try {
         function changeDate() {
             const date = document.getElementById('dateFilter').value;
             window.location.href = '?date=' + date;
+        }
+        
+        async function deleteRecord(date) {
+            const thaiDate = new Date(date).toLocaleDateString('th-TH');
+            
+            if (!confirm(`⚠️ คุณต้องการลบข้อมูลสต็อกวันที่ ${thaiDate} หรือไม่?\n\n🚨 การลบจะไม่สามารถกู้คืนได้!\n\n✅ หลังจากลบแล้ว คุณสามารถบันทึกข้อมูลใหม่ได้`)) {
+                return;
+            }
+            
+            if (!confirm(`🔴 ยืนยันอีกครั้ง: ลบข้อมูลวันที่ ${thaiDate}?\n\nข้อมูลทั้งหมดรวมถึงรูปภาพจะถูกลบถาวร`)) {
+                return;
+            }
+            
+            try {
+                // Show loading
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '⏳ กำลังลบ...';
+                button.disabled = true;
+                
+                const response = await fetch('/api/delete-record.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ date: date })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✅ ลบข้อมูลสำเร็จ!\n\n📊 ลบข้อมูล: ${data.details.deleted_records} รายการ\n📸 ลบรูปภาพ: ${data.details.deleted_photos} รูป\n\n🎯 ตอนนี้คุณสามารถบันทึกข้อมูลใหม่ได้แล้ว`);
+                    
+                    // Redirect to main page or refresh
+                    window.location.href = '/';
+                } else {
+                    alert('❌ เกิดข้อผิดพลาด: ' + data.message);
+                    button.textContent = originalText;
+                    button.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error('Delete error:', error);
+                alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+                button.textContent = originalText;
+                button.disabled = false;
+            }
         }
     </script>
 </body>
