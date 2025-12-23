@@ -18,6 +18,21 @@
         <div class="employee-section">
             <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
             
+            <!-- Debug Panel -->
+            <div class="material-card mb-4" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+                <h4 class="text-sm font-semibold mb-2 text-gray-700">🔧 System Status</h4>
+                <div class="text-xs text-gray-600 space-y-1">
+                    <div>Server: <span id="serverStatus" class="font-mono">Checking...</span></div>
+                    <div>APIs: <span id="apiStatus" class="font-mono">Checking...</span></div>
+                    <div>Database: <span id="dbStatus" class="font-mono">Checking...</span></div>
+                </div>
+                <div class="mt-2">
+                    <a href="/setup.php" class="text-xs text-blue-600 hover:text-blue-800">🛠️ Setup Wizard</a>
+                    <span class="mx-2 text-gray-400">|</span>
+                    <a href="/test-basic.php" class="text-xs text-blue-600 hover:text-blue-800">🔍 System Test</a>
+                </div>
+            </div>
+            
             <!-- Employee Section -->
             <div id="employeeSection" class="employee-card">
                 <label for="employeeName">ชื่อพนักงาน</label>
@@ -60,6 +75,60 @@
         
         let materials = [];
         let employeeName = '';
+        
+        // Run system check on page load
+        window.addEventListener('load', function() {
+            checkSystemStatus();
+        });
+        
+        // Check system status
+        async function checkSystemStatus() {
+            // Check server
+            try {
+                const response = await fetch('/test-basic.php');
+                if (response.ok) {
+                    document.getElementById('serverStatus').textContent = '✅ Online';
+                    document.getElementById('serverStatus').className = 'font-mono text-green-600';
+                } else {
+                    document.getElementById('serverStatus').textContent = '❌ Error ' + response.status;
+                    document.getElementById('serverStatus').className = 'font-mono text-red-600';
+                }
+            } catch (error) {
+                document.getElementById('serverStatus').textContent = '❌ Offline';
+                document.getElementById('serverStatus').className = 'font-mono text-red-600';
+            }
+            
+            // Check APIs
+            try {
+                const response = await fetch('/api/get-materials.php');
+                const contentType = response.headers.get('content-type');
+                
+                if (response.ok && contentType && contentType.includes('application/json')) {
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('apiStatus').textContent = `✅ Working (${data.count || 0} materials)`;
+                        document.getElementById('apiStatus').className = 'font-mono text-green-600';
+                        document.getElementById('dbStatus').textContent = '✅ Connected';
+                        document.getElementById('dbStatus').className = 'font-mono text-green-600';
+                    } else {
+                        document.getElementById('apiStatus').textContent = '⚠️ API Error';
+                        document.getElementById('apiStatus').className = 'font-mono text-yellow-600';
+                        document.getElementById('dbStatus').textContent = '❌ ' + (data.message || 'Error');
+                        document.getElementById('dbStatus').className = 'font-mono text-red-600';
+                    }
+                } else {
+                    document.getElementById('apiStatus').textContent = '❌ Invalid Response';
+                    document.getElementById('apiStatus').className = 'font-mono text-red-600';
+                    document.getElementById('dbStatus').textContent = '❌ Connection Failed';
+                    document.getElementById('dbStatus').className = 'font-mono text-red-600';
+                }
+            } catch (error) {
+                document.getElementById('apiStatus').textContent = '❌ Failed';
+                document.getElementById('apiStatus').className = 'font-mono text-red-600';
+                document.getElementById('dbStatus').textContent = '❌ No Connection';
+                document.getElementById('dbStatus').className = 'font-mono text-red-600';
+            }
+        }
         
         // Show error message
         function showError(message) {
@@ -107,9 +176,23 @@
         // Load materials
         async function loadMaterials() {
             try {
+                console.log('Loading materials...');
                 const response = await fetch('/api/get-materials.php');
-                const data = await response.json();
                 
+                // Check if response is ok
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Check content type
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned HTML instead of JSON. Check server logs.');
+                }
+                
+                const data = await response.json();
                 console.log('Materials data:', data);
                 
                 if (data.success) {
@@ -123,7 +206,11 @@
                 }
             } catch (error) {
                 console.error('Load materials error:', error);
-                showError('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
+                if (error.message.includes('JSON')) {
+                    showError('เซิร์ฟเวอร์มีปัญหา กรุณาเข้าไปที่ /setup.php เพื่อแก้ไขปัญหา');
+                } else {
+                    showError('เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + error.message);
+                }
             }
         }
         

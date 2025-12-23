@@ -10,10 +10,15 @@
 </IfModule>
 
 # -----------------------------
-# Protect sensitive files
+# Protect sensitive files (UPDATED - Allow test files)
 # -----------------------------
-<FilesMatch "(\.htaccess|\.env|config\.php|composer\.(json|lock)|\.sql|\.log)$">
+<FilesMatch "(\.htaccess|\.env|composer\.(json|lock)|\.sql|\.log)$">
     Require all denied
+</FilesMatch>
+
+# Allow specific test and setup files
+<FilesMatch "^(test-|setup|debug|config\.php)">
+    Require all granted
 </FilesMatch>
 
 # -----------------------------
