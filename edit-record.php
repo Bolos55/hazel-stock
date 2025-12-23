@@ -200,6 +200,7 @@ try {
                     <div class="space-x-2">
                         <a href="/" class="text-blue-600 hover:text-blue-800 text-sm">🏠 หน้าหลัก</a>
                         <a href="/manage-employees.php" class="text-green-600 hover:text-green-800 text-sm">👥 จัดการพนักงาน</a>
+                        <a href="/manage-materials.php" class="text-purple-600 hover:text-purple-800 text-sm">🧪 จัดการวัตถุดิบ</a>
                     </div>
                 </div>
             </div>

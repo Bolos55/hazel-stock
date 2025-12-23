@@ -5,6 +5,9 @@
 
 date_default_timezone_set('Asia/Bangkok');
 
+// Set timezone for database connections too
+ini_set('date.timezone', 'Asia/Bangkok');
+
 /* ================= DATABASE ENV ================= */
 define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
 define('DB_PORT', getenv('DB_PORT') ?: 3306);
