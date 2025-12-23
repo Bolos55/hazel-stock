@@ -191,19 +191,55 @@ if (isset($_GET['edit'])) {
             width: 100%;
             border-collapse: collapse;
             margin-top: 1rem;
+            font-size: 0.875rem;
         }
         .material-table th,
         .material-table td {
             border: 1px solid #d1d5db;
-            padding: 0.75rem;
+            padding: 0.5rem;
             text-align: left;
+            vertical-align: top;
         }
         .material-table th {
             background: #f9fafb;
             font-weight: 600;
+            font-size: 0.75rem;
         }
         .material-table tr:hover {
             background: #f9fafb;
+        }
+        
+        /* Responsive table */
+        @media (max-width: 768px) {
+            .material-table {
+                font-size: 0.75rem;
+            }
+            .material-table th,
+            .material-table td {
+                padding: 0.25rem;
+            }
+            .edit-inline {
+                flex-direction: column;
+                gap: 0.25rem;
+            }
+            .edit-inline button {
+                font-size: 0.625rem;
+                padding: 0.125rem 0.25rem;
+            }
+        }
+        
+        /* Hide less important columns on mobile */
+        @media (max-width: 640px) {
+            .hide-mobile {
+                display: none;
+            }
+        }
+        
+        /* Compact mode */
+        .table-compact .material-table th,
+        .table-compact .material-table td {
+            padding: 0.25rem;
+            font-size: 0.75rem;
         }
         .btn-small {
             padding: 0.25rem 0.75rem;
@@ -396,10 +432,26 @@ if (isset($_GET['edit'])) {
 
             <!-- Material List -->
             <div class="material-card">
-                <h3 class="text-lg font-semibold mb-4">🧪 รายการวัตถุดิบ (<?= count($materials) ?> รายการ)</h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">🧪 รายการวัตถุดิบ (<?= count($materials) ?> รายการ)</h3>
+                    <div class="flex gap-2">
+                        <button onclick="toggleCompactMode()" id="compactBtn" class="btn-small" style="background: #6b7280; color: white;">
+                            📱 กะทัดรัด
+                        </button>
+                        <button onclick="toggleMobileColumns()" id="columnsBtn" class="btn-small" style="background: #8b5cf6; color: white;">
+                            👁️ ซ่อน/แสดง
+                        </button>
+                    </div>
+                </div>
                 
                 <div class="alert alert-info mb-4">
-                    <p><strong>💡 วิธีแก้ไข:</strong> คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> ข้างข้อมูลที่ต้องการแก้ไข</p>
+                    <p><strong>💡 วิธีใช้:</strong></p>
+                    <ul class="list-disc list-inside text-sm mt-2 space-y-1">
+                        <li>คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> เพื่อแก้ไขข้อมูล</li>
+                        <li>คลิก <span class="bg-gray-500 text-white px-2 py-1 rounded text-xs">📱 กะทัดรัด</span> เพื่อลดขนาดตาราง</li>
+                        <li>คลิก <span class="bg-purple-500 text-white px-2 py-1 rounded text-xs">👁️ ซ่อน/แสดง</span> เพื่อจัดการคอลัมน์</li>
+                        <li>หน้าจอเล็กจะซ่อนคอลัมน์ไม่สำคัญอัตโนมัติ</li>
+                    </ul>
                 </div>
                 
                 <?php if (empty($materials)): ?>
@@ -408,8 +460,8 @@ if (isset($_GET['edit'])) {
                         <p class="text-gray-600">ยังไม่มีวัตถุดิบในระบบ</p>
                     </div>
                 <?php else: ?>
-                    <div class="overflow-x-auto">
-                        <table class="material-table">
+                    <div class="overflow-x-auto" id="tableContainer">
+                        <table class="material-table" id="materialsTable">
                             <thead>
                                 <tr>
                                     <th>ลำดับ</th>
@@ -417,11 +469,11 @@ if (isset($_GET['edit'])) {
                                     <th>ชื่อวัตถุดิบ</th>
                                     <th><?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?></th>
                                     <?php if ($hasSubUnit): ?>
-                                    <th>หน่วยย่อย</th>
+                                    <th class="hide-mobile">หน่วยย่อย</th>
                                     <?php endif; ?>
-                                    <th>จำนวนการบันทึก</th>
-                                    <th>บันทึกล่าสุด</th>
-                                    <th>วันที่เพิ่ม</th>
+                                    <th class="hide-mobile">จำนวนการบันทึก</th>
+                                    <th class="hide-mobile">บันทึกล่าสุด</th>
+                                    <th class="hide-mobile">วันที่เพิ่ม</th>
                                     <th>จัดการ</th>
                                 </tr>
                             </thead>
@@ -457,7 +509,7 @@ if (isset($_GET['edit'])) {
                                             </div>
                                         </td>
                                         <?php if ($hasSubUnit): ?>
-                                        <td>
+                                        <td class="hide-mobile">
                                             <div class="edit-inline">
                                                 <button onclick="editField(<?= $material['id'] ?>, 'sub_unit', '<?= htmlspecialchars($material['sub_unit'] ?? '') ?>', 'หน่วยย่อย')" 
                                                         class="btn-small btn-edit" title="แก้ไขหน่วยย่อย">✏️</button>
@@ -469,7 +521,7 @@ if (isset($_GET['edit'])) {
                                             </div>
                                         </td>
                                         <?php endif; ?>
-                                        <td class="text-center">
+                                        <td class="text-center hide-mobile">
                                             <?php if ($material['record_count'] > 0): ?>
                                                 <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">
                                                     <?= $material['record_count'] ?> ครั้ง
@@ -478,14 +530,14 @@ if (isset($_GET['edit'])) {
                                                 <span class="text-gray-500">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
+                                        <td class="hide-mobile">
                                             <?php if ($material['last_record_date']): ?>
                                                 <?= date('d/m/Y', strtotime($material['last_record_date'])) ?>
                                             <?php else: ?>
                                                 <span class="text-gray-500">ยังไม่เคยบันทึก</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td><?= date('d/m/Y H:i', strtotime($material['created_at'])) ?></td>
+                                        <td class="hide-mobile"><?= date('d/m/Y H:i', strtotime($material['created_at'])) ?></td>
                                         <td>
                                             <a href="?edit=<?= $material['id'] ?>" 
                                                class="btn-small btn-edit">✏️ แก้ไข</a>
@@ -552,6 +604,52 @@ if (isset($_GET['edit'])) {
                 form.submit();
             }
         }
+        
+        // Toggle compact mode
+        function toggleCompactMode() {
+            const container = document.getElementById('tableContainer');
+            const btn = document.getElementById('compactBtn');
+            
+            if (container.classList.contains('table-compact')) {
+                container.classList.remove('table-compact');
+                btn.textContent = '📱 กะทัดรัด';
+                btn.style.background = '#6b7280';
+            } else {
+                container.classList.add('table-compact');
+                btn.textContent = '📱 ปกติ';
+                btn.style.background = '#059669';
+            }
+        }
+        
+        // Toggle mobile columns
+        function toggleMobileColumns() {
+            const hiddenCols = document.querySelectorAll('.hide-mobile');
+            const btn = document.getElementById('columnsBtn');
+            
+            if (hiddenCols[0].style.display === 'none') {
+                hiddenCols.forEach(col => col.style.display = '');
+                btn.textContent = '👁️ ซ่อน';
+                btn.style.background = '#8b5cf6';
+            } else {
+                hiddenCols.forEach(col => col.style.display = 'none');
+                btn.textContent = '👁️ แสดง';
+                btn.style.background = '#059669';
+            }
+        }
+        
+        // Auto-hide columns on small screens
+        function checkScreenSize() {
+            if (window.innerWidth <= 640) {
+                const hiddenCols = document.querySelectorAll('.hide-mobile');
+                hiddenCols.forEach(col => col.style.display = 'none');
+                document.getElementById('columnsBtn').textContent = '👁️ แสดง';
+                document.getElementById('columnsBtn').style.background = '#059669';
+            }
+        }
+        
+        // Check on load and resize
+        window.addEventListener('load', checkScreenSize);
+        window.addEventListener('resize', checkScreenSize);
         
         // Legacy function for backward compatibility
         function editMaterialInline(id, currentName, currentUnit, currentSubUnit) {
