@@ -120,7 +120,20 @@ try {
                     </div>
                     
                     <div class="mt-4 text-center">
-                        <p class="text-sm text-gray-600">รวม <?= count($records) ?> รายการ</p>
+                        <p class="text-sm text-gray-600 mb-3">รวม <?= count($records) ?> รายการ</p>
+                        <div class="space-x-2">
+                            <a href="/api/export-csv.php?date=<?= $date ?>" 
+                               class="btn-primary" 
+                               style="background: #10b981; display: inline-block; text-decoration: none;">
+                                📊 Export CSV
+                            </a>
+                            <a href="/api/export-excel.php?date=<?= $date ?>" 
+                               class="btn-primary" 
+                               style="background: #3b82f6; display: inline-block; text-decoration: none;">
+                                📈 Export Excel
+                            </a>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-2">CSV: ใช้งานได้เลย | Excel: ต้องติดตั้ง PhpSpreadsheet</p>
                     </div>
                 </div>
             <?php endif; ?>
