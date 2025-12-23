@@ -288,7 +288,7 @@ try {
                         <img src="assets/phuriboss.jpg" alt="Owner" class="owner-photo">
                         <div class="owner-info">
                             <h4>ภูริวัฒน์ โภคสวัสดิ์</h4>
-                            <p>เจ้าของกิจการ</p>
+                            <p>ผู้อยู่เบื้องหลังกิจการ</p>
                             <p class="owner-quote">"มุ่งมั่นสร้างสรรค์เครื่องดื่มคุณภาพ<br>เพื่อความสุขของลูกค้าทุกท่าน"</p>
                         </div>
                     </div>

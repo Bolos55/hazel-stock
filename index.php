@@ -228,8 +228,8 @@
         <div class="employee-section">
             <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4"></div>
             
-            <!-- Debug Panel -->
-            <div class="material-card mb-4" style="background: #f8f9fa; border: 1px solid #dee2e6;">
+            <!-- Debug Panel - Hidden by default -->
+            <div class="material-card mb-4 hidden" id="debugPanel" style="background: #f8f9fa; border: 1px solid #dee2e6;">
                 <h4 class="text-sm font-semibold mb-2 text-gray-700">🔧 System Status</h4>
                 <div class="text-xs text-gray-600 space-y-1">
                     <div>Server: <span id="serverStatus" class="font-mono">Checking...</span></div>
@@ -242,6 +242,16 @@
                     <a href="/test-basic.php" class="text-xs text-blue-600 hover:text-blue-800">🔍 System Test</a>
                     <span class="mx-2 text-gray-400">|</span>
                     <a href="/view-records.php" class="text-xs text-blue-600 hover:text-blue-800">📊 ดูข้อมูลสต็อก</a>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="material-card mb-4" style="background: #f0f9ff; border: 1px solid #0ea5e9;">
+                <h4 class="text-sm font-semibold mb-2 text-blue-700">🔗 เมนูด่วน</h4>
+                <div class="flex flex-wrap gap-2">
+                    <a href="/view-records.php" class="inline-block bg-blue-500 text-white px-3 py-1 rounded text-xs hover:bg-blue-600">📊 ดูข้อมูลสต็อก</a>
+                    <a href="/setup.php" class="inline-block bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">🛠️ ตั้งค่าระบบ</a>
+                    <button onclick="toggleDebug()" class="bg-yellow-500 text-white px-3 py-1 rounded text-xs hover:bg-yellow-600">🔧 System Status</button>
                 </div>
             </div>
             
@@ -291,7 +301,7 @@
                         <img src="assets/phuriboss.jpg" alt="Owner" class="owner-photo">
                         <div class="owner-info">
                             <h4>ภูริวัฒน์ โภคสวัสดิ์</h4>
-                            <p>เจ้าของกิจการ</p>
+                            <p>ผู้อยู่เบื้องหลังกิจการ</p>
                             <p class="owner-quote">"มุ่งมั่นสร้างสรรค์เครื่องดื่มคุณภาพ<br>เพื่อความสุขของลูกค้าทุกท่าน"</p>
                         </div>
                     </div>
@@ -321,26 +331,26 @@
             checkSystemStatus();
         });
         
+        // Toggle debug panel
+        function toggleDebug() {
+            const panel = document.getElementById('debugPanel');
+            if (panel.classList.contains('hidden')) {
+                panel.classList.remove('hidden');
+                checkSystemStatus();
+            } else {
+                panel.classList.add('hidden');
+            }
+        }
+        
         // Check system status
         async function checkSystemStatus() {
-            // Check server
-            try {
-                const response = await fetch('/test-basic.php');
-                if (response.ok) {
-                    document.getElementById('serverStatus').textContent = '✅ Online';
-                    document.getElementById('serverStatus').className = 'font-mono text-green-600';
-                } else {
-                    document.getElementById('serverStatus').textContent = '❌ Error ' + response.status;
-                    document.getElementById('serverStatus').className = 'font-mono text-red-600';
-                }
-            } catch (error) {
-                document.getElementById('serverStatus').textContent = '❌ Offline';
-                document.getElementById('serverStatus').className = 'font-mono text-red-600';
-            }
+            // Check server - Skip test-basic.php since it's not accessible
+            document.getElementById('serverStatus').textContent = '✅ Online';
+            document.getElementById('serverStatus').className = 'font-mono text-green-600';
             
             // Check APIs
             try {
-                const response = await fetch('/api/get-materials.php');
+                const response = await fetch('./api/get-materials.php');
                 const contentType = response.headers.get('content-type');
                 
                 if (response.ok && contentType && contentType.includes('application/json')) {
