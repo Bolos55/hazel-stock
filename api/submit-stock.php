@@ -22,16 +22,22 @@ try {
         jsonResponse(['success' => false, 'message' => 'ข้อมูลไม่ครบ'], 400);
     }
 
-    // หา employee
+    // หา employee หรือสร้างใหม่
     $stmt = $db->prepare("SELECT id FROM employees WHERE full_name = ?");
     $stmt->execute([$employeeName]);
     $employee = $stmt->fetch();
 
     if (!$employee) {
-        jsonResponse(['success' => false, 'message' => 'ไม่พบพนักงาน'], 404);
+        // สร้างพนักงานใหม่
+        $stmt = $db->prepare("
+            INSERT INTO employees (full_name, employee_name) 
+            VALUES (?, ?)
+        ");
+        $stmt->execute([$employeeName, $employeeName]);
+        $employeeId = $db->lastInsertId();
+    } else {
+        $employeeId = $employee['id'];
     }
-
-    $employeeId = $employee['id'];
     $today = date('Y-m-d');
 
     // เช็กว่าบันทึกวันนี้แล้วหรือยัง
