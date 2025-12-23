@@ -30,6 +30,8 @@
                     <a href="/setup.php" class="text-xs text-blue-600 hover:text-blue-800">🛠️ Setup Wizard</a>
                     <span class="mx-2 text-gray-400">|</span>
                     <a href="/test-basic.php" class="text-xs text-blue-600 hover:text-blue-800">🔍 System Test</a>
+                    <span class="mx-2 text-gray-400">|</span>
+                    <a href="/view-records.php" class="text-xs text-blue-600 hover:text-blue-800">📊 ดูข้อมูลสต็อก</a>
                 </div>
             </div>
             
