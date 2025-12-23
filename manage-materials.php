@@ -394,9 +394,66 @@ if (isset($_GET['edit'])) {
             grid-template-columns: repeat(7, 1fr);
         }
         @media (max-width: 768px) {
-            .grid-cols-2, .grid-cols-4, .grid-cols-5, .grid-cols-7 {
+            .grid-cols-2, .grid-cols-3, .grid-cols-4, .grid-cols-5, .grid-cols-7 {
                 grid-template-columns: 1fr;
             }
+        }
+        
+        /* Form sections styling */
+        .form-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-section h4 {
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+        
+        .quantity-preview {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 1px solid #93c5fd;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .space-x-2 > * + * {
+            margin-left: 0.5rem;
+        }
+        
+        .space-x-3 > * + * {
+            margin-left: 0.75rem;
+        }
+        
+        .flex-1 {
+            flex: 1 1 0%;
+        }
+        
+        .min-w-0 {
+            min-width: 0;
         }
     </style>
 </head>
@@ -442,92 +499,126 @@ if (isset($_GET['edit'])) {
                         <input type="hidden" name="id" value="<?= $editMaterial['id'] ?>">
                     <?php endif; ?>
                     
-                    <div class="grid grid-cols-7 gap-4">
-                        <div class="form-group">
-                            <label for="material_code">รหัสวัตถุดิบ</label>
-                            <input type="text" 
-                                   id="material_code" 
-                                   name="material_code" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['material_code'] ?? '') ?>"
-                                   placeholder="เช่น MILK001"
-                                   required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="material_name">ชื่อวัตถุดิบ</label>
-                            <input type="text" 
-                                   id="material_name" 
-                                   name="material_name" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['material_name'] ?? '') ?>"
-                                   placeholder="เช่น นม"
-                                   required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="unit">หน่วยหลัก</label>
-                            <input type="text" 
-                                   id="unit" 
-                                   name="unit" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['unit'] ?? '') ?>"
-                                   placeholder="เช่น ถุง, กล่อง, ขวด"
-                                   required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="sub_unit">หน่วยย่อย</label>
-                            <input type="text" 
-                                   id="sub_unit" 
-                                   name="sub_unit" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['sub_unit'] ?? '') ?>"
-                                   placeholder="เช่น ลิตร, กิโลกรัม">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="unit_quantity">จำนวนหน่วยหลัก</label>
-                            <input type="number" 
-                                   id="unit_quantity" 
-                                   name="unit_quantity" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['unit_quantity'] ?? '0') ?>"
-                                   step="0.01"
-                                   min="0"
-                                   placeholder="เช่น 2">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="sub_unit_quantity">จำนวนหน่วยย่อย</label>
-                            <input type="number" 
-                                   id="sub_unit_quantity" 
-                                   name="sub_unit_quantity" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['sub_unit_quantity'] ?? '0') ?>"
-                                   step="0.01"
-                                   min="0"
-                                   placeholder="เช่น 1">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="display_order">ลำดับแสดง</label>
-                            <input type="number" 
-                                   id="display_order" 
-                                   name="display_order" 
-                                   class="form-input" 
-                                   value="<?= htmlspecialchars($editMaterial['display_order'] ?? count($materials) + 1) ?>"
-                                   min="1"
-                                   required>
+                    <!-- Basic Info Section -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium mb-3 text-gray-700">📝 ข้อมูลพื้นฐาน</h4>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="form-group">
+                                <label for="material_code">รหัสวัตถุดิบ</label>
+                                <input type="text" 
+                                       id="material_code" 
+                                       name="material_code" 
+                                       class="form-input" 
+                                       value="<?= htmlspecialchars($editMaterial['material_code'] ?? '') ?>"
+                                       placeholder="เช่น MILK001"
+                                       required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="material_name">ชื่อวัตถุดิบ</label>
+                                <input type="text" 
+                                       id="material_name" 
+                                       name="material_name" 
+                                       class="form-input" 
+                                       value="<?= htmlspecialchars($editMaterial['material_name'] ?? '') ?>"
+                                       placeholder="เช่น นม"
+                                       required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="display_order">ลำดับแสดง</label>
+                                <input type="number" 
+                                       id="display_order" 
+                                       name="display_order" 
+                                       class="form-input" 
+                                       value="<?= htmlspecialchars($editMaterial['display_order'] ?? count($materials) + 1) ?>"
+                                       min="1"
+                                       required>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="mt-4">
+                    <!-- Units Section -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium mb-3 text-gray-700">📏 หน่วยการวัด</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label for="unit">หน่วยหลัก</label>
+                                <input type="text" 
+                                       id="unit" 
+                                       name="unit" 
+                                       class="form-input" 
+                                       value="<?= htmlspecialchars($editMaterial['unit'] ?? '') ?>"
+                                       placeholder="เช่น ถุง, กล่อง, ขวด"
+                                       required>
+                                <small class="text-gray-500">หน่วยบรรจุภัณฑ์หลัก</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sub_unit">หน่วยย่อย</label>
+                                <input type="text" 
+                                       id="sub_unit" 
+                                       name="sub_unit" 
+                                       class="form-input" 
+                                       value="<?= htmlspecialchars($editMaterial['sub_unit'] ?? '') ?>"
+                                       placeholder="เช่น ลิตร, กิโลกรัม">
+                                <small class="text-gray-500">หน่วยน้ำหนัก/ปริมาตร</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quantities Section -->
+                    <div class="mb-6">
+                        <h4 class="text-md font-medium mb-3 text-gray-700">🔢 จำนวนคงเหลือ</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label for="unit_quantity">จำนวนหน่วยหลัก</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" 
+                                           id="unit_quantity" 
+                                           name="unit_quantity" 
+                                           class="form-input flex-1" 
+                                           value="<?= htmlspecialchars($editMaterial['unit_quantity'] ?? '0') ?>"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="0">
+                                    <span class="text-gray-500 text-sm min-w-0" id="unit_display">หน่วย</span>
+                                </div>
+                                <small class="text-gray-500">เช่น 2 ถุง</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="sub_unit_quantity">จำนวนหน่วยย่อย</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" 
+                                           id="sub_unit_quantity" 
+                                           name="sub_unit_quantity" 
+                                           class="form-input flex-1" 
+                                           value="<?= htmlspecialchars($editMaterial['sub_unit_quantity'] ?? '0') ?>"
+                                           step="0.01"
+                                           min="0"
+                                           placeholder="0">
+                                    <span class="text-gray-500 text-sm min-w-0" id="sub_unit_display">หน่วย</span>
+                                </div>
+                                <small class="text-gray-500">เช่น 1.5 ลิตร</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview -->
+                        <div class="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div class="text-sm text-blue-700">
+                                <strong>🔍 ตัวอย่างการแสดงผล:</strong> 
+                                <span id="quantity_preview" class="font-medium">ยังไม่ระบุจำนวน</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3">
                         <button type="submit" class="btn-primary">
                             <?= $editMaterial ? '💾 บันทึกการแก้ไข' : '➕ เพิ่มวัตถุดิบ' ?>
                         </button>
                         <?php if ($editMaterial): ?>
-                            <a href="/manage-materials.php" class="btn-secondary ml-2">❌ ยกเลิก</a>
+                            <a href="/manage-materials.php" class="btn-secondary">❌ ยกเลิก</a>
                         <?php endif; ?>
                     </div>
                 </form>
@@ -666,16 +757,61 @@ if (isset($_GET['edit'])) {
             }
         }
         
+        // Update unit displays and preview in real-time
+        function updatePreview() {
+            const unit = document.getElementById('unit').value || 'หน่วย';
+            const subUnit = document.getElementById('sub_unit').value || 'หน่วย';
+            const unitQty = parseFloat(document.getElementById('unit_quantity').value) || 0;
+            const subUnitQty = parseFloat(document.getElementById('sub_unit_quantity').value) || 0;
+            
+            // Update unit labels
+            const unitDisplay = document.getElementById('unit_display');
+            const subUnitDisplay = document.getElementById('sub_unit_display');
+            if (unitDisplay) unitDisplay.textContent = unit;
+            if (subUnitDisplay) subUnitDisplay.textContent = subUnit;
+            
+            // Update preview
+            let preview = '';
+            if (unitQty > 0) {
+                preview += `${unitQty} ${unit}`;
+            }
+            if (subUnitQty > 0) {
+                if (preview) preview += ' ';
+                preview += `${subUnitQty} ${subUnit}`;
+            }
+            
+            if (!preview) {
+                preview = 'ยังไม่ระบุจำนวน';
+            }
+            
+            const previewElement = document.getElementById('quantity_preview');
+            if (previewElement) previewElement.textContent = preview;
+        }
+        
+        // Add event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = ['unit', 'sub_unit', 'unit_quantity', 'sub_unit_quantity'];
+            inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', updatePreview);
+                }
+            });
+            
+            // Initial update
+            updatePreview();
+        });
+        
         // Toggle compact mode
         function toggleCompactMode() {
             const container = document.getElementById('tableContainer');
             const btn = document.getElementById('compactBtn');
             
-            if (container.classList.contains('table-compact')) {
+            if (container && container.classList.contains('table-compact')) {
                 container.classList.remove('table-compact');
                 btn.textContent = '📱 กะทัดรัด';
                 btn.style.background = '#6b7280';
-            } else {
+            } else if (container) {
                 container.classList.add('table-compact');
                 btn.textContent = '📱 ปกติ';
                 btn.style.background = '#059669';
@@ -744,12 +880,16 @@ if (isset($_GET['edit'])) {
             
             if (window.innerWidth <= 768) {
                 hiddenCols.forEach(col => col.classList.add('force-hide'));
-                btn.textContent = '👁️ แสดง';
-                btn.style.background = '#059669';
+                if (btn) {
+                    btn.textContent = '👁️ แสดง';
+                    btn.style.background = '#059669';
+                }
             } else {
                 hiddenCols.forEach(col => col.classList.remove('force-hide'));
-                btn.textContent = '👁️ ซ่อน';
-                btn.style.background = '#8b5cf6';
+                if (btn) {
+                    btn.textContent = '👁️ ซ่อน';
+                    btn.style.background = '#8b5cf6';
+                }
             }
         }
         
