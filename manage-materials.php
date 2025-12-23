@@ -57,6 +57,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$id]);
                     $success = "ลบวัตถุดิบสำเร็จ";
                     break;
+                    
+                case 'quick_edit':
+                    $id = (int)$_POST['id'];
+                    $materialName = trim($_POST['material_name']);
+                    
+                    if (empty($materialName)) {
+                        throw new Exception('กรุณากรอกชื่อวัตถุดิบ');
+                    }
+                    
+                    $stmt = $db->prepare("UPDATE raw_materials SET material_name = ? WHERE id = ?");
+                    $stmt->execute([$materialName, $id]);
+                    $success = "แก้ไขชื่อวัตถุดิบสำเร็จ";
+                    break;
             }
         }
     } catch (Exception $e) {
@@ -201,6 +214,7 @@ if (isset($_GET['edit'])) {
                     <div class="space-x-2">
                         <a href="/view-records.php" class="text-blue-600 hover:text-blue-800 text-sm">📊 ดูข้อมูลสต็อก</a>
                         <a href="/manage-employees.php" class="text-green-600 hover:text-green-800 text-sm">👥 จัดการพนักงาน</a>
+                        <a href="/add-stock.php" class="text-orange-600 hover:text-orange-800 text-sm">📦 เพิ่มสต็อกเข้า</a>
                     </div>
                 </div>
             </div>
@@ -357,7 +371,8 @@ if (isset($_GET['edit'])) {
                                                 <button onclick="deleteMaterial(<?= $material['id'] ?>, '<?= htmlspecialchars($material['material_name']) ?>')" 
                                                         class="btn-small btn-delete">🗑️ ลบ</button>
                                             <?php else: ?>
-                                                <span class="text-xs text-gray-500">มีข้อมูลแล้ว</span>
+                                                <button onclick="editMaterialInline(<?= $material['id'] ?>, '<?= htmlspecialchars($material['material_name']) ?>', '<?= htmlspecialchars($material['unit']) ?>', '<?= htmlspecialchars($material['sub_unit']) ?>')" 
+                                                        class="btn-small" style="background: #f59e0b; color: white;">📝 แก้ไขด่วน</button>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -381,6 +396,22 @@ if (isset($_GET['edit'])) {
             if (confirm(`คุณต้องการลบวัตถุดิบ "${name}" หรือไม่?\n\n⚠️ หากวัตถุดิบนี้มีข้อมูลการบันทึกแล้ว จะไม่สามารถลบได้`)) {
                 document.getElementById('deleteId').value = id;
                 document.getElementById('deleteForm').submit();
+            }
+        }
+        
+        function editMaterialInline(id, currentName, currentUnit, currentSubUnit) {
+            const newName = prompt(`แก้ไขชื่อวัตถุดิบ:`, currentName);
+            if (newName && newName.trim() !== '' && newName !== currentName) {
+                // Create a form to submit the change
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="action" value="quick_edit">
+                    <input type="hidden" name="id" value="${id}">
+                    <input type="hidden" name="material_name" value="${newName.trim()}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>

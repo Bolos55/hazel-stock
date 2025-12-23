@@ -279,6 +279,7 @@
                     <a href="/view-records.php" class="inline-block bg-blue-500 text-black px-3 py-1 rounded text-xs hover:bg-blue-600 hover:text-white font-semibold">📊 ดูข้อมูลสต็อก</a>
                     <a href="/manage-employees.php" class="inline-block bg-green-500 text-black px-3 py-1 rounded text-xs hover:bg-green-600 hover:text-white font-semibold">👥 จัดการพนักงาน</a>
                     <a href="/manage-materials.php" class="inline-block bg-purple-500 text-black px-3 py-1 rounded text-xs hover:bg-purple-600 hover:text-white font-semibold">🧪 จัดการวัตถุดิบ</a>
+                    <a href="/add-stock.php" class="inline-block bg-orange-500 text-black px-3 py-1 rounded text-xs hover:bg-orange-600 hover:text-white font-semibold">📦 เพิ่มสต็อกเข้า</a>
                     <button onclick="toggleDebug()" class="bg-yellow-500 text-black px-3 py-1 rounded text-xs hover:bg-yellow-600 hover:text-white font-semibold">🔧 System Status</button>
                 </div>
             </div>

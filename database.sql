@@ -60,6 +60,22 @@ CREATE TABLE IF NOT EXISTS `excel_export_log` (
     KEY `idx_export_date` (`export_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ================= STOCK ADDITIONS TABLE ================= 
+CREATE TABLE IF NOT EXISTS `stock_additions` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `material_id` int(11) NOT NULL COMMENT 'รหัสวัตถุดิบ',
+    `employee_id` int(11) NOT NULL COMMENT 'รหัสพนักงาน',
+    `quantity` decimal(10,2) NOT NULL COMMENT 'จำนวนที่เพิ่ม',
+    `note` varchar(255) DEFAULT NULL COMMENT 'หมายเหตุ',
+    `added_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'เวลาที่เพิ่ม',
+    PRIMARY KEY (`id`),
+    KEY `idx_material_id` (`material_id`),
+    KEY `idx_employee_id` (`employee_id`),
+    KEY `idx_added_at` (`added_at`),
+    CONSTRAINT `fk_stock_additions_material` FOREIGN KEY (`material_id`) REFERENCES `raw_materials` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_stock_additions_employee` FOREIGN KEY (`employee_id`) REFERENCES `employees` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ================= SAMPLE DATA ================= 
 INSERT INTO `employees` (`full_name`, `employee_name`) VALUES
 ('นายสมชาย ใจดี', 'สมชาย'),

@@ -197,6 +197,7 @@ try {
                     <div class="space-x-2">
                         <a href="/manage-employees.php" class="text-green-600 hover:text-green-800 text-sm">👥 จัดการพนักงาน</a>
                         <a href="/manage-materials.php" class="text-purple-600 hover:text-purple-800 text-sm">🧪 จัดการวัตถุดิบ</a>
+                        <a href="/add-stock.php" class="text-orange-600 hover:text-orange-800 text-sm">📦 เพิ่มสต็อกเข้า</a>
                         <a href="/setup.php" class="text-gray-600 hover:text-gray-800 text-sm">🛠️ Setup</a>
                     </div>
                 </div>
@@ -305,6 +306,11 @@ try {
                                class="btn-primary" 
                                style="background: #10b981; display: inline-block; text-decoration: none;">
                                 📊 Export CSV (Excel ใช้ได้)
+                            </a>
+                            <a href="/api/export-usage-report.php?end_date=<?= $date ?>" 
+                               class="btn-primary" 
+                               style="background: #f59e0b; display: inline-block; text-decoration: none;">
+                                📈 รายงานการใช้งาน (เปรียบเทียบ)
                             </a>
                         </div>
                         <p class="text-xs text-gray-500 mt-2">ไฟล์ CSV สามารถเปิดใน Excel ได้ทันที</p>

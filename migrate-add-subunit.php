@@ -45,6 +45,32 @@ try {
         echo "ℹ️ คอลัมน์ sub_unit มีอยู่แล้ว\n";
     }
     
+    // Check if stock_additions table exists
+    $stmt = $db->query("SHOW TABLES LIKE 'stock_additions'");
+    $tableExists = $stmt->rowCount() > 0;
+    
+    if (!$tableExists) {
+        echo "➕ สร้างตาราง stock_additions...\n";
+        $db->exec("
+            CREATE TABLE stock_additions (
+                id INT PRIMARY KEY AUTO_INCREMENT,
+                material_id INT NOT NULL,
+                employee_id INT NOT NULL,
+                quantity DECIMAL(10,2) NOT NULL COMMENT 'จำนวนที่เพิ่ม',
+                note VARCHAR(255) DEFAULT NULL COMMENT 'หมายเหตุ',
+                added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'เวลาที่เพิ่ม',
+                KEY idx_material_id (material_id),
+                KEY idx_employee_id (employee_id),
+                KEY idx_added_at (added_at),
+                CONSTRAINT fk_stock_additions_material FOREIGN KEY (material_id) REFERENCES raw_materials (id) ON DELETE CASCADE,
+                CONSTRAINT fk_stock_additions_employee FOREIGN KEY (employee_id) REFERENCES employees (id) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        ");
+        echo "✅ สร้างตาราง stock_additions สำเร็จ!\n";
+    } else {
+        echo "ℹ️ ตาราง stock_additions มีอยู่แล้ว\n";
+    }
+    
     // Show current materials
     echo "\n📋 รายการวัตถุดิบปัจจุบัน:\n";
     $stmt = $db->query("SELECT material_code, material_name, unit, sub_unit FROM raw_materials ORDER BY display_order");
