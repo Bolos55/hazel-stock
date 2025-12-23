@@ -82,6 +82,138 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+        
+        /* Footer Styles */
+        .hazel-footer {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            margin-top: 4rem;
+            padding: 3rem 0 1rem 0;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .footer-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .footer-text h3 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        
+        .footer-text p {
+            margin: 0.25rem 0;
+            opacity: 0.9;
+        }
+        
+        .footer-tagline {
+            font-style: italic;
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        .footer-right {
+            flex: 1;
+            max-width: 400px;
+        }
+        
+        .owner-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .owner-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .owner-info h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .owner-info p {
+            margin: 0.25rem 0;
+            opacity: 0.9;
+        }
+        
+        .owner-quote {
+            font-style: italic;
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 2rem;
+            padding-top: 1rem;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        .footer-bottom p {
+            margin: 0.25rem 0;
+            font-size: 0.875rem;
+        }
+        
+        .footer-system {
+            opacity: 0.6;
+        }
+        
+        /* Responsive Footer */
+        @media (max-width: 768px) {
+            .footer-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .footer-left {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .owner-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .owner-photo {
+                width: 100px;
+                height: 100px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -142,6 +274,34 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Footer -->
+        <footer class="hazel-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <img src="assets/hazel-logo.png" alt="Hazel" class="footer-logo">
+                    <div class="footer-text">
+                        <h3>Hazel</h3>
+                        <p>Beverages & Appetizers</p>
+                        <p class="footer-tagline">คุณภาพในทุกหยด ความอร่อยในทุกคำ</p>
+                    </div>
+                </div>
+                <div class="footer-right">
+                    <div class="owner-section">
+                        <img src="assets/phuriboss.jpg" alt="Owner" class="owner-photo">
+                        <div class="owner-info">
+                            <h4>ภูริวัฒน์ โภคสวัสดิ์</h4>
+                            <p>เจ้าของกิจการ</p>
+                            <p class="owner-quote">"มุ่งมั่นสร้างสรรค์เครื่องดื่มคุณภาพ<br>เพื่อความสุขของลูกค้าทุกท่าน"</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Hazel Beverages & Appetizers. สงวนลิขสิทธิ์.</p>
+                <p class="footer-system">ระบบจัดการสต็อกวัตถุดิบ | พัฒนาโดย Kiro AI</p>
+            </div>
+        </footer>
     </div>
 
     <script>
