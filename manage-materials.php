@@ -206,12 +206,12 @@ if (isset($_GET['edit'])) {
             overflow: hidden;
         }
         
-        /* Column widths */
+        /* Column widths - Updated for separate unit columns */
         .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 8%; } /* ลำดับ */
-        .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 15%; } /* รหัส */
-        .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 20%; } /* ชื่อ */
+        .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 12%; } /* รหัส */
+        .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 25%; } /* ชื่อ */
         .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 12%; } /* หน่วยหลัก */
-        .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 10%; } /* หน่วยย่อย */
+        .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 12%; } /* หน่วยย่อย */
         .material-table th:nth-child(9), .material-table td:nth-child(9) { width: 15%; } /* จัดการ */
         
         .material-table th {
@@ -287,11 +287,35 @@ if (isset($_GET['edit'])) {
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            width: 100%;
         }
         .edit-inline button {
             padding: 0.125rem 0.25rem;
             font-size: 0.75rem;
             min-width: auto;
+            flex-shrink: 0;
+        }
+        .edit-inline span {
+            font-size: 0.75rem;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        
+        /* Make sure text is visible */
+        .material-table td .edit-inline span {
+            color: #374151;
+            font-weight: 500;
+        }
+        
+        /* Column specific styling */
+        .material-table td:nth-child(4) .edit-inline span { /* หน่วยหลัก */
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .material-table td:nth-child(5) .edit-inline span { /* หน่วยย่อย */
+            font-weight: 500;
+            color: #6b7280;
         }
         .form-group {
             margin-bottom: 1rem;
@@ -469,11 +493,11 @@ if (isset($_GET['edit'])) {
                 <div class="alert alert-info mb-4">
                     <p><strong>💡 วิธีใช้:</strong></p>
                     <ul class="list-disc list-inside text-sm mt-2 space-y-1">
-                        <li>คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> เพื่อแก้ไขข้อมูล</li>
+                        <li>คลิกปุ่ม <span class="bg-blue-500 text-white px-2 py-1 rounded text-xs">✏️</span> เพื่อแก้ไขข้อมูลแต่ละฟิลด์</li>
                         <li>คลิก <span class="bg-gray-500 text-white px-2 py-1 rounded text-xs">📱 กะทัดรัด</span> เพื่อลดขนาดตาราง</li>
                         <li>คลิก <span class="bg-purple-500 text-white px-2 py-1 rounded text-xs">👁️ ซ่อน/แสดง</span> เพื่อจัดการคอลัมน์</li>
                         <li>คลิก <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">🔥 ขั้นต่ำ</span> เพื่อแสดงเฉพาะข้อมูลสำคัญ</li>
-                        <li><strong>หน่วย:</strong> แสดงทั้งหน่วยหลักและหน่วยย่อย (เช่น ถุง/ลิตร)</li>
+                        <li><strong>หน่วย:</strong> แยกเป็น 2 คอลัมน์ - หน่วยหลัก (เช่น ถุง) และหน่วยย่อย (เช่น ลิตร)</li>
                     </ul>
                 </div>
                 
@@ -490,9 +514,9 @@ if (isset($_GET['edit'])) {
                                     <th>ลำดับ</th>
                                     <th>รหัส</th>
                                     <th>ชื่อวัตถุดิบ</th>
-                                    <th>หน่วย<?= $hasSubUnit ? ' (หลัก/ย่อย)' : '' ?></th>
+                                    <th>หน่วยหลัก</th>
                                     <?php if ($hasSubUnit): ?>
-                                    <th class="hide-mobile">หน่วยย่อย (แยก)</th>
+                                    <th class="hide-mobile">หน่วยย่อย</th>
                                     <?php endif; ?>
                                     <th class="hide-mobile">จำนวนการบันทึก</th>
                                     <th class="hide-mobile">บันทึกล่าสุด</th>
@@ -526,14 +550,9 @@ if (isset($_GET['edit'])) {
                                         </td>
                                         <td>
                                             <div class="edit-inline">
-                                                <button onclick="editField(<?= $material['id'] ?>, 'unit', '<?= htmlspecialchars($material['unit']) ?>', '<?= $hasSubUnit ? 'หน่วยหลัก' : 'หน่วย' ?>')" 
-                                                        class="btn-small btn-edit" title="แก้ไขหน่วย">✏️</button>
-                                                <div>
-                                                    <div class="font-semibold"><?= htmlspecialchars($material['unit']) ?></div>
-                                                    <?php if ($hasSubUnit && !empty($material['sub_unit'])): ?>
-                                                        <div class="text-xs text-gray-600">/ <?= htmlspecialchars($material['sub_unit']) ?></div>
-                                                    <?php endif; ?>
-                                                </div>
+                                                <button onclick="editField(<?= $material['id'] ?>, 'unit', '<?= htmlspecialchars($material['unit']) ?>', 'หน่วยหลัก')" 
+                                                        class="btn-small btn-edit" title="แก้ไขหน่วยหลัก">✏️</button>
+                                                <span class="font-medium"><?= htmlspecialchars($material['unit']) ?></span>
                                             </div>
                                         </td>
                                         <?php if ($hasSubUnit): ?>
@@ -542,7 +561,7 @@ if (isset($_GET['edit'])) {
                                                 <button onclick="editField(<?= $material['id'] ?>, 'sub_unit', '<?= htmlspecialchars($material['sub_unit'] ?? '') ?>', 'หน่วยย่อย')" 
                                                         class="btn-small btn-edit" title="แก้ไขหน่วยย่อย">✏️</button>
                                                 <?php if (!empty($material['sub_unit'])): ?>
-                                                    <span class="text-gray-600"><?= htmlspecialchars($material['sub_unit']) ?></span>
+                                                    <span class="text-gray-700"><?= htmlspecialchars($material['sub_unit']) ?></span>
                                                 <?php else: ?>
                                                     <span class="text-gray-400">-</span>
                                                 <?php endif; ?>
@@ -696,21 +715,23 @@ if (isset($_GET['edit'])) {
         
         // Force minimal mode - show only essential columns
         function forceMinimal() {
-            const allHideable = document.querySelectorAll('.hide-mobile, th:nth-child(2), td:nth-child(2)'); // Hide รหัส too
+            // Hide: รหัส, จำนวนการบันทึก, บันทึกล่าสุด, วันที่เพิ่ม
+            // Keep: ลำดับ, ชื่อ, หน่วยหลัก, หน่วยย่อย, จัดการ
+            const hideColumns = document.querySelectorAll('th:nth-child(2), td:nth-child(2), .hide-mobile'); 
             const btn = document.getElementById('minimalBtn');
             
             let isMinimal = btn.textContent.includes('ปกติ');
             
             if (isMinimal) {
                 // Show all
-                allHideable.forEach(col => {
+                hideColumns.forEach(col => {
                     col.classList.remove('force-hide');
                 });
                 btn.textContent = '🔥 ขั้นต่ำ';
                 btn.style.background = '#ef4444';
             } else {
-                // Hide everything except: ลำดับ, ชื่อ, หน่วย, จัดการ
-                allHideable.forEach(col => {
+                // Hide selected columns
+                hideColumns.forEach(col => {
                     col.classList.add('force-hide');
                 });
                 btn.textContent = '🔥 ปกติ';
