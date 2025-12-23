@@ -19,7 +19,7 @@ define('DB_CHARSET', 'utf8mb4');
 /* ================= APP SETTINGS ================= */
 define('PHOTOS_DIR', __DIR__ . '/stock-photos');
 define('EXCEL_DIR', __DIR__ . '/excel-exports');
-define('MAX_PHOTO_SIZE', 5 * 1024 * 1024); // 5MB
+define('MAX_PHOTO_SIZE', 2 * 1024 * 1024); // Reduced to 2MB for speed
 define('ALLOWED_PHOTO_TYPES', ['image/jpeg', 'image/png']);
 
 /* ================= CREATE DIR (SAFE) ================= */

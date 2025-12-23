@@ -118,6 +118,37 @@
             padding: 3rem 0 1rem 0;
         }
         
+        /* Loading Styles */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .btn-loading {
+            position: relative;
+        }
+        
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            margin: auto;
+            border: 2px solid transparent;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
         .footer-content {
             max-width: 1200px;
             margin: 0 auto;
@@ -408,18 +439,17 @@
             employeeName = '';
         }
         
-        // Check system status
+        // Check system status (reduced frequency)
         async function checkSystemStatus() {
-            // Check server - Skip test-basic.php since it's not accessible
+            // Skip server test for speed
             document.getElementById('serverStatus').textContent = '✅ Online';
             document.getElementById('serverStatus').className = 'font-mono text-green-600';
             
-            // Check APIs
+            // Check APIs (simplified)
             try {
                 const response = await fetch('./api/get-materials.php');
-                const contentType = response.headers.get('content-type');
                 
-                if (response.ok && contentType && contentType.includes('application/json')) {
+                if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
                         document.getElementById('apiStatus').textContent = `✅ Working (${data.count || 0} materials)`;
@@ -650,6 +680,12 @@
                 return;
             }
             
+            // Show loading
+            const submitBtn = document.querySelector('button[onclick="submitStock()"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = '⏳ กำลังบันทึก...';
+            submitBtn.disabled = true;
+            
             try {
                 console.log('Submitting stock data:', stockData); // Debug log
                 
@@ -682,19 +718,23 @@
             } catch (error) {
                 console.error('Submit error:', error);
                 showError('เกิดข้อผิดพลาดในการบันทึก: ' + error.message);
+            } finally {
+                // Restore button
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
             }
         }
         
         // Photo storage
         window.photoStorage = {};
         
-        // Handle file select (both camera and gallery)
+        // Handle file select (both camera and gallery) - optimized
         function handleFileSelect(materialId, input) {
             const file = input.files[0];
             if (file) {
-                // Validate file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    showError('ไฟล์รูปใหญ่เกินไป (สูงสุด 5MB)');
+                // Validate file size (reduced to 2MB for speed)
+                if (file.size > 2 * 1024 * 1024) {
+                    showError('ไฟล์รูปใหญ่เกินไป (สูงสุด 2MB)');
                     return;
                 }
                 
@@ -704,10 +744,15 @@
                     return;
                 }
                 
+                // Show loading
+                const preview = document.getElementById(`photoPreview-${materialId}`);
+                preview.innerHTML = '<div class="text-center py-4">⏳ กำลังประมวลผลรูป...</div>';
+                preview.classList.remove('hidden');
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    // Resize image if too large
-                    resizeImage(e.target.result, 800, 600, (resizedDataUrl) => {
+                    // Resize image if too large (smaller size for speed)
+                    resizeImage(e.target.result, 600, 400, (resizedDataUrl) => {
                         window.photoStorage[materialId] = resizedDataUrl;
                         showPhotoPreview(materialId, resizedDataUrl);
                     });
@@ -739,7 +784,7 @@
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
                 
-                // Calculate new dimensions
+                // Calculate new dimensions (smaller for faster loading)
                 let { width, height } = img;
                 if (width > height) {
                     if (width > maxWidth) {
@@ -756,9 +801,9 @@
                 canvas.width = width;
                 canvas.height = height;
                 
-                // Draw and compress
+                // Draw and compress more (reduce quality for speed)
                 ctx.drawImage(img, 0, 0, width, height);
-                const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.6); // Reduced from 0.8 to 0.6
                 callback(resizedDataUrl);
             };
             img.src = dataUrl;

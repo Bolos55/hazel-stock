@@ -7,7 +7,7 @@ try {
     // Get date filter
     $date = $_GET['date'] ?? date('Y-m-d');
     
-    // Get records for the date
+    // Get records for the date (optimized query)
     $stmt = $db->prepare("
         SELECT 
             dsr.record_date,
@@ -19,10 +19,11 @@ try {
             rm.unit,
             rm.sub_unit
         FROM daily_stock_records dsr
+        FORCE INDEX (idx_record_date)
         JOIN employees e ON dsr.employee_id = e.id
         JOIN raw_materials rm ON dsr.material_id = rm.id
         WHERE dsr.record_date = ?
-        ORDER BY rm.display_order ASC, rm.material_name ASC
+        ORDER BY rm.display_order ASC
     ");
     $stmt->execute([$date]);
     $records = $stmt->fetchAll();
