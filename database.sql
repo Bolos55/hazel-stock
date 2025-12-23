@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS `raw_materials` (
     `material_name` varchar(255) NOT NULL COMMENT 'ชื่อวัตถุดิบ',
     `unit` varchar(50) NOT NULL COMMENT 'หน่วยหลัก',
     `sub_unit` varchar(50) DEFAULT NULL COMMENT 'หน่วยย่อย',
+    `unit_quantity` decimal(10,2) DEFAULT 0.00 COMMENT 'จำนวนหน่วยหลัก',
+    `sub_unit_quantity` decimal(10,2) DEFAULT 0.00 COMMENT 'จำนวนหน่วยย่อย',
     `current_stock` decimal(10,2) DEFAULT 0.00 COMMENT 'สต็อกปัจจุบัน',
     `display_order` int(11) DEFAULT 0 COMMENT 'ลำดับการแสดงผล',
     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,

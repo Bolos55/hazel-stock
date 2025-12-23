@@ -13,21 +13,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $materialName = trim($_POST['material_name']);
                     $unit = trim($_POST['unit']);
                     $subUnit = isset($_POST['sub_unit']) ? trim($_POST['sub_unit']) ?: null : null;
+                    $unitQuantity = isset($_POST['unit_quantity']) ? (float)$_POST['unit_quantity'] : 0.00;
+                    $subUnitQuantity = isset($_POST['sub_unit_quantity']) ? (float)$_POST['sub_unit_quantity'] : 0.00;
                     $displayOrder = (int)$_POST['display_order'];
                     
                     if (empty($materialCode) || empty($materialName) || empty($unit)) {
                         throw new Exception('กรุณากรอกข้อมูลให้ครบ');
                     }
                     
-                    // Check if sub_unit column exists
+                    // Check if quantity columns exist
                     try {
-                        $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
-                        $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, display_order) VALUES (?, ?, ?, ?, ?)");
-                        $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder]);
+                        $db->query("SELECT unit_quantity, sub_unit_quantity FROM raw_materials LIMIT 1");
+                        // Both quantity columns exist
+                        try {
+                            $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+                            $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, unit_quantity, sub_unit_quantity, display_order) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                            $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $unitQuantity, $subUnitQuantity, $displayOrder]);
+                        } catch (Exception $e) {
+                            // sub_unit column doesn't exist, use basic insert with quantities
+                            $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, unit_quantity, sub_unit_quantity, display_order) VALUES (?, ?, ?, ?, ?, ?)");
+                            $stmt->execute([$materialCode, $materialName, $unit, $unitQuantity, $subUnitQuantity, $displayOrder]);
+                        }
                     } catch (Exception $e) {
-                        // sub_unit column doesn't exist, use basic insert
-                        $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, display_order) VALUES (?, ?, ?, ?)");
-                        $stmt->execute([$materialCode, $materialName, $unit, $displayOrder]);
+                        // Quantity columns don't exist, use old method
+                        try {
+                            $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+                            $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, display_order) VALUES (?, ?, ?, ?, ?)");
+                            $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder]);
+                        } catch (Exception $e) {
+                            // sub_unit column doesn't exist, use basic insert
+                            $stmt = $db->prepare("INSERT INTO raw_materials (material_code, material_name, unit, display_order) VALUES (?, ?, ?, ?)");
+                            $stmt->execute([$materialCode, $materialName, $unit, $displayOrder]);
+                        }
                     }
                     $success = "เพิ่มวัตถุดิบสำเร็จ";
                     break;
@@ -38,21 +55,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $materialName = trim($_POST['material_name']);
                     $unit = trim($_POST['unit']);
                     $subUnit = isset($_POST['sub_unit']) ? trim($_POST['sub_unit']) ?: null : null;
+                    $unitQuantity = isset($_POST['unit_quantity']) ? (float)$_POST['unit_quantity'] : 0.00;
+                    $subUnitQuantity = isset($_POST['sub_unit_quantity']) ? (float)$_POST['sub_unit_quantity'] : 0.00;
                     $displayOrder = (int)$_POST['display_order'];
                     
                     if (empty($materialCode) || empty($materialName) || empty($unit)) {
                         throw new Exception('กรุณากรอกข้อมูลให้ครบ');
                     }
                     
-                    // Check if sub_unit column exists
+                    // Check if quantity columns exist
                     try {
-                        $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
-                        $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, sub_unit = ?, display_order = ? WHERE id = ?");
-                        $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder, $id]);
+                        $db->query("SELECT unit_quantity, sub_unit_quantity FROM raw_materials LIMIT 1");
+                        // Both quantity columns exist
+                        try {
+                            $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+                            $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, sub_unit = ?, unit_quantity = ?, sub_unit_quantity = ?, display_order = ? WHERE id = ?");
+                            $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $unitQuantity, $subUnitQuantity, $displayOrder, $id]);
+                        } catch (Exception $e) {
+                            // sub_unit column doesn't exist, use basic update with quantities
+                            $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, unit_quantity = ?, sub_unit_quantity = ?, display_order = ? WHERE id = ?");
+                            $stmt->execute([$materialCode, $materialName, $unit, $unitQuantity, $subUnitQuantity, $displayOrder, $id]);
+                        }
                     } catch (Exception $e) {
-                        // sub_unit column doesn't exist, use basic update
-                        $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, display_order = ? WHERE id = ?");
-                        $stmt->execute([$materialCode, $materialName, $unit, $displayOrder, $id]);
+                        // Quantity columns don't exist, use old method
+                        try {
+                            $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
+                            $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, sub_unit = ?, display_order = ? WHERE id = ?");
+                            $stmt->execute([$materialCode, $materialName, $unit, $subUnit, $displayOrder, $id]);
+                        } catch (Exception $e) {
+                            // sub_unit column doesn't exist, use basic update
+                            $stmt = $db->prepare("UPDATE raw_materials SET material_code = ?, material_name = ?, unit = ?, display_order = ? WHERE id = ?");
+                            $stmt->execute([$materialCode, $materialName, $unit, $displayOrder, $id]);
+                        }
                     }
                     $success = "แก้ไขวัตถุดิบสำเร็จ";
                     break;
@@ -80,26 +114,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $value = trim($_POST['value']);
                     
                     // Validate field name for security
-                    $allowedFields = ['material_code', 'material_name', 'unit', 'sub_unit', 'display_order'];
+                    $allowedFields = ['material_code', 'material_name', 'unit', 'sub_unit', 'unit_quantity', 'sub_unit_quantity', 'display_order'];
                     if (!in_array($field, $allowedFields)) {
                         throw new Exception('ฟิลด์ไม่ถูกต้อง');
                     }
                     
-                    if (empty($value) && $field !== 'sub_unit') {
+                    if (empty($value) && !in_array($field, ['sub_unit', 'unit_quantity', 'sub_unit_quantity'])) {
                         throw new Exception('กรุณากรอกข้อมูล');
                     }
                     
-                    // Special handling for display_order
-                    if ($field === 'display_order') {
-                        $value = (int)$value;
-                        if ($value < 1) {
+                    // Special handling for numeric fields
+                    if (in_array($field, ['display_order', 'unit_quantity', 'sub_unit_quantity'])) {
+                        $value = (float)$value;
+                        if ($field === 'display_order' && $value < 1) {
                             throw new Exception('ลำดับแสดงต้องมากกว่า 0');
+                        }
+                        if (in_array($field, ['unit_quantity', 'sub_unit_quantity']) && $value < 0) {
+                            throw new Exception('จำนวนต้องไม่ติดลบ');
                         }
                     }
                     
                     // Check if we can update this field
                     if ($field === 'sub_unit' && !$hasSubUnit) {
                         throw new Exception('ระบบยังไม่รองรับหน่วยย่อย กรุณาอัพเดทฐานข้อมูลก่อน');
+                    }
+                    
+                    if (in_array($field, ['unit_quantity', 'sub_unit_quantity']) && !$hasQuantities) {
+                        throw new Exception('ระบบยังไม่รองรับจำนวนคู่ กรุณาอัพเดทฐานข้อมูลก่อน');
                     }
                     
                     // Update the field
@@ -111,6 +152,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'material_name' => 'ชื่อวัตถุดิบ',
                         'unit' => 'หน่วย',
                         'sub_unit' => 'หน่วยย่อย',
+                        'unit_quantity' => 'จำนวนหน่วยหลัก',
+                        'sub_unit_quantity' => 'จำนวนหน่วยย่อย',
                         'display_order' => 'ลำดับแสดง'
                     ];
                     
@@ -129,17 +172,35 @@ try {
     
     // Check if sub_unit column exists
     $hasSubUnit = false;
+    $hasQuantities = false;
     try {
         $db->query("SELECT sub_unit FROM raw_materials LIMIT 1");
         $hasSubUnit = true;
+        
+        // Check if quantity columns exist
+        $db->query("SELECT unit_quantity, sub_unit_quantity FROM raw_materials LIMIT 1");
+        $hasQuantities = true;
     } catch (Exception $e) {
-        // sub_unit column doesn't exist
+        // columns don't exist
     }
     
-    if ($hasSubUnit) {
+    if ($hasSubUnit && $hasQuantities) {
         $stmt = $db->query("
             SELECT 
                 rm.*,
+                COUNT(dsr.id) as record_count,
+                MAX(dsr.record_date) as last_record_date
+            FROM raw_materials rm
+            LEFT JOIN daily_stock_records dsr ON rm.id = dsr.material_id
+            GROUP BY rm.id
+            ORDER BY rm.display_order ASC, rm.material_name ASC
+        ");
+    } else if ($hasSubUnit) {
+        $stmt = $db->query("
+            SELECT 
+                rm.*,
+                0.00 as unit_quantity,
+                0.00 as sub_unit_quantity,
                 COUNT(dsr.id) as record_count,
                 MAX(dsr.record_date) as last_record_date
             FROM raw_materials rm
@@ -152,6 +213,8 @@ try {
             SELECT 
                 rm.*,
                 '' as sub_unit,
+                0.00 as unit_quantity,
+                0.00 as sub_unit_quantity,
                 COUNT(dsr.id) as record_count,
                 MAX(dsr.record_date) as last_record_date
             FROM raw_materials rm
@@ -165,6 +228,7 @@ try {
     $error = $e->getMessage();
     $materials = [];
     $hasSubUnit = false;
+    $hasQuantities = false;
 }
 
 // Get material for editing
@@ -206,13 +270,13 @@ if (isset($_GET['edit'])) {
             overflow: hidden;
         }
         
-        /* Column widths - Updated for separate unit columns */
-        .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 8%; } /* ลำดับ */
-        .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 12%; } /* รหัส */
-        .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 25%; } /* ชื่อ */
-        .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 12%; } /* หน่วยหลัก */
-        .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 12%; } /* หน่วยย่อย */
-        .material-table th:nth-child(9), .material-table td:nth-child(9) { width: 15%; } /* จัดการ */
+        /* Column widths - Updated for separate unit columns and quantities */
+        .material-table th:nth-child(1), .material-table td:nth-child(1) { width: 6%; } /* ลำดับ */
+        .material-table th:nth-child(2), .material-table td:nth-child(2) { width: 10%; } /* รหัส */
+        .material-table th:nth-child(3), .material-table td:nth-child(3) { width: 20%; } /* ชื่อ */
+        .material-table th:nth-child(4), .material-table td:nth-child(4) { width: 8%; } /* หน่วยหลัก */
+        .material-table th:nth-child(5), .material-table td:nth-child(5) { width: 8%; } /* หน่วยย่อย */
+        .material-table th:nth-child(6), .material-table td:nth-child(6) { width: 12%; } /* จำนวนคงเหลือ */
         
         .material-table th {
             background: #f9fafb;
@@ -372,7 +436,7 @@ if (isset($_GET['edit'])) {
                         <input type="hidden" name="id" value="<?= $editMaterial['id'] ?>">
                     <?php endif; ?>
                     
-                    <div class="grid <?= $hasSubUnit ? 'grid-cols-5' : 'grid-cols-4' ?> gap-4">
+                    <div class="grid <?= ($hasSubUnit && $hasQuantities) ? 'grid-cols-7' : ($hasSubUnit ? 'grid-cols-5' : 'grid-cols-4') ?> gap-4">
                         <div class="form-group">
                             <label for="material_code">รหัสวัตถุดิบ</label>
                             <input type="text" 
@@ -416,6 +480,34 @@ if (isset($_GET['edit'])) {
                                    value="<?= htmlspecialchars($editMaterial['sub_unit'] ?? '') ?>"
                                    placeholder="เช่น ลิตร, กิโลกรัม">
                         </div>
+                        <?php endif; ?>
+                        
+                        <?php if ($hasQuantities): ?>
+                        <div class="form-group">
+                            <label for="unit_quantity">จำนวน<?= $hasSubUnit ? 'หน่วยหลัก' : '' ?></label>
+                            <input type="number" 
+                                   id="unit_quantity" 
+                                   name="unit_quantity" 
+                                   class="form-input" 
+                                   value="<?= htmlspecialchars($editMaterial['unit_quantity'] ?? '0') ?>"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="เช่น 2">
+                        </div>
+                        
+                        <?php if ($hasSubUnit): ?>
+                        <div class="form-group">
+                            <label for="sub_unit_quantity">จำนวนหน่วยย่อย</label>
+                            <input type="number" 
+                                   id="sub_unit_quantity" 
+                                   name="sub_unit_quantity" 
+                                   class="form-input" 
+                                   value="<?= htmlspecialchars($editMaterial['sub_unit_quantity'] ?? '0') ?>"
+                                   step="0.01"
+                                   min="0"
+                                   placeholder="เช่น 1">
+                        </div>
+                        <?php endif; ?>
                         <?php endif; ?>
                         
                         <div class="form-group">
@@ -466,6 +558,9 @@ if (isset($_GET['edit'])) {
                         <li>คลิก <span class="bg-purple-500 text-white px-2 py-1 rounded text-xs">👁️ ซ่อน/แสดง</span> เพื่อจัดการคอลัมน์</li>
                         <li>คลิก <span class="bg-red-500 text-white px-2 py-1 rounded text-xs">🔥 ขั้นต่ำ</span> เพื่อแสดงเฉพาะข้อมูลสำคัญ</li>
                         <li><strong>หน่วย:</strong> แยกเป็น 2 คอลัมน์ - หน่วยหลัก (เช่น ถุง) และหน่วยย่อย (เช่น ลิตร)</li>
+                        <?php if ($hasQuantities): ?>
+                        <li><strong>จำนวนคงเหลือ:</strong> ระบุจำนวนในรูปแบบ "2 ถุง 1 ลิตร" เพื่อแสดงสต็อกปัจจุบัน</li>
+                        <?php endif; ?>
                     </ul>
                 </div>
                 
@@ -485,6 +580,9 @@ if (isset($_GET['edit'])) {
                                     <th>หน่วยหลัก</th>
                                     <?php if ($hasSubUnit): ?>
                                     <th class="hide-mobile">หน่วยย่อย</th>
+                                    <?php endif; ?>
+                                    <?php if ($hasQuantities): ?>
+                                    <th class="hide-mobile">จำนวนคงเหลือ</th>
                                     <?php endif; ?>
                                     <th class="hide-mobile">จำนวนการบันทึก</th>
                                     <th class="hide-mobile">บันทึกล่าสุด</th>
@@ -506,6 +604,24 @@ if (isset($_GET['edit'])) {
                                             <?php else: ?>
                                                 <span class="text-gray-400">-</span>
                                             <?php endif; ?>
+                                        </td>
+                                        <?php endif; ?>
+                                        <?php if ($hasQuantities): ?>
+                                        <td class="hide-mobile">
+                                            <?php 
+                                            $displayQuantity = '';
+                                            if ($material['unit_quantity'] > 0) {
+                                                $displayQuantity .= number_format($material['unit_quantity'], 2) . ' ' . $material['unit'];
+                                            }
+                                            if ($hasSubUnit && $material['sub_unit_quantity'] > 0 && !empty($material['sub_unit'])) {
+                                                if ($displayQuantity) $displayQuantity .= ' ';
+                                                $displayQuantity .= number_format($material['sub_unit_quantity'], 2) . ' ' . $material['sub_unit'];
+                                            }
+                                            if (empty($displayQuantity)) {
+                                                $displayQuantity = '<span class="text-gray-500">ยังไม่ระบุ</span>';
+                                            }
+                                            echo $displayQuantity;
+                                            ?>
                                         </td>
                                         <?php endif; ?>
                                         <td class="text-center hide-mobile">

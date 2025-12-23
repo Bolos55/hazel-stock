@@ -17,6 +17,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_migration'])) {
         if (!$columnExists) {
             $output[] = "➕ เพิ่มคอลัมน์ sub_unit...";
             $db->exec("ALTER TABLE raw_materials ADD COLUMN sub_unit VARCHAR(50) DEFAULT NULL COMMENT 'หน่วยย่อย' AFTER unit");
+        }
+        
+        // Check if quantity columns exist
+        $stmt = $db->query("SHOW COLUMNS FROM raw_materials LIKE 'unit_quantity'");
+        $unitQuantityExists = $stmt->rowCount() > 0;
+        
+        $stmt = $db->query("SHOW COLUMNS FROM raw_materials LIKE 'sub_unit_quantity'");
+        $subUnitQuantityExists = $stmt->rowCount() > 0;
+        
+        if (!$unitQuantityExists) {
+            $output[] = "➕ เพิ่มคอลัมน์ unit_quantity...";
+            $db->exec("ALTER TABLE raw_materials ADD COLUMN unit_quantity DECIMAL(10,2) DEFAULT 0.00 COMMENT 'จำนวนหน่วยหลัก' AFTER sub_unit");
+        }
+        
+        if (!$subUnitQuantityExists) {
+            $output[] = "➕ เพิ่มคอลัมน์ sub_unit_quantity...";
+            $db->exec("ALTER TABLE raw_materials ADD COLUMN sub_unit_quantity DECIMAL(10,2) DEFAULT 0.00 COMMENT 'จำนวนหน่วยย่อย' AFTER unit_quantity");
+        }
+        
+        if (!$columnExists) {
             
             // Update existing materials with sample sub_units
             $updates = [
@@ -47,6 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_migration'])) {
             $output[] = "✅ เพิ่มคอลัมน์ sub_unit สำเร็จ!";
         } else {
             $output[] = "ℹ️ คอลัมน์ sub_unit มีอยู่แล้ว";
+        }
+        
+        if (!$unitQuantityExists) {
+            $output[] = "ℹ️ คอลัมน์ unit_quantity มีอยู่แล้ว";
+        }
+        
+        if (!$subUnitQuantityExists) {
+            $output[] = "ℹ️ คอลัมน์ sub_unit_quantity มีอยู่แล้ว";
         }
         
         // Check if stock_additions table exists
@@ -168,6 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_migration'])) {
                         <h4 class="font-semibold mb-2">📋 การอัพเดทนี้จะทำ:</h4>
                         <ul class="list-disc list-inside space-y-1">
                             <li>เพิ่มคอลัมน์ <code>sub_unit</code> ในตาราง raw_materials</li>
+                            <li>เพิ่มคอลัมน์ <code>unit_quantity</code> และ <code>sub_unit_quantity</code> สำหรับระบบจำนวนคู่</li>
                             <li>อัพเดทข้อมูลวัตถุดิบที่มีอยู่ให้มีหน่วยย่อย</li>
                             <li>สร้างตาราง <code>stock_additions</code> สำหรับระบบเพิ่มสต็อก</li>
                             <li>ตรวจสอบและแสดงข้อมูลปัจจุบัน</li>
