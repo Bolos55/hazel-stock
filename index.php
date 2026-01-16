@@ -382,6 +382,33 @@ $isNextDay = $workDateTime['is_next_day'];
                     <a href="login.php" class="ml-2 text-sm text-blue-600 hover:text-blue-800 font-semibold">🔐 เข้าสู่ระบบแอดมิน</a>
                 </div>
             </div>
+            
+            <!-- Install App Button (For Non-Admin) -->
+            <div id="installAppBanner" style="display: none;" class="material-card mb-4" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">
+                <div class="text-center">
+                    <button onclick="installPWAFromHome()" style="
+                        width: 100%;
+                        background: transparent;
+                        color: white;
+                        border: 2px solid white;
+                        padding: 1rem;
+                        border-radius: 0.75rem;
+                        font-size: 1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.5rem;
+                    ">
+                        <span style="font-size: 1.5rem;">📱</span>
+                        <span>ติดตั้งแอปบนมือถือ</span>
+                    </button>
+                    <p style="color: white; font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.9;">
+                        ใช้งานได้เหมือนแอปจริง ไม่ต้องเปิดเบราว์เซอร์
+                    </p>
+                </div>
+            </div>
             <?php endif; ?>
             
             <!-- Work Date Notification (if in next day period) -->
@@ -1447,6 +1474,39 @@ $isNextDay = $workDateTime['is_next_day'];
         if (isPWA()) {
             console.log('[PWA] Running as installed app');
             document.body.classList.add('pwa-mode');
+        }
+        
+        // Install PWA from home page
+        let homeDeferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            homeDeferredPrompt = e;
+            
+            // Show install banner if not installed
+            if (!isPWA()) {
+                document.getElementById('installAppBanner').style.display = 'block';
+            }
+        });
+        
+        async function installPWAFromHome() {
+            if (!homeDeferredPrompt) {
+                alert('ไม่สามารถติดตั้งได้ในขณะนี้\nกรุณาลองใหม่อีกครั้ง');
+                return;
+            }
+            
+            homeDeferredPrompt.prompt();
+            const { outcome } = await homeDeferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('[PWA] User accepted installation');
+                document.getElementById('installAppBanner').style.display = 'none';
+                
+                // Show success message
+                alert('✅ ติดตั้งสำเร็จ!\nตรวจสอบไอคอนบนหน้าจอหลักของคุณ');
+            }
+            
+            homeDeferredPrompt = null;
         }
     </script>
     
