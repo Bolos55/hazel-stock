@@ -11,6 +11,7 @@ if (!file_exists(__DIR__ . '/../vendor/autoload.php')) {
 }
 
 require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../work-date-helper.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -21,7 +22,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 try {
     $db = Database::getInstance()->getConnection();
-    $date = $_GET['date'] ?? date('Y-m-d');
+    $date = $_GET['date'] ?? getWorkDate();
 
     // เพิ่ม date validation
     if (!validateDate($date)) {

@@ -3,6 +3,9 @@
 // config.php (RENDER + AIVEN SAFE)
 // ================================
 
+// Load environment variables from .env file
+require_once __DIR__ . '/load-env.php';
+
 date_default_timezone_set('Asia/Bangkok');
 
 // Set timezone for database connections too
@@ -52,6 +55,9 @@ class Database {
 
                 // สำคัญสำหรับ Aiven
                 PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
+                
+                // Force UTF-8
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci"
             ];
 
             $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);

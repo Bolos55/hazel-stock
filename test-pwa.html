@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#C4161C">
+    <title>PWA Test - Hazel Stock</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #FAF7F2 0%, #f5f5f5 100%);
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #C4161C;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .test-section {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            border-left: 4px solid #C4161C;
+        }
+        
+        .test-section h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .test-item {
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: white;
+            border-radius: 0.375rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        button {
+            background: #C4161C;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        
+        button:hover {
+            background: #A01218;
+        }
+        
+        .code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+        
+        .icon-preview {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .icon-item {
+            text-align: center;
+        }
+        
+        .icon-item img {
+            width: 64px;
+            height: 64px;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+        
+        .icon-item span {
+            display: block;
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 PWA Test Dashboard</h1>
+        
+        <!-- Service Worker Test -->
+        <div class="test-section">
+            <h2>1. Service Worker</h2>
+            <div class="test-item">
+                <span>Service Worker Support</span>
+                <span id="sw-support" class="status">Checking...</span>
+            </div>
+            <div class="test-item">
+                <span>Service Worker Status</span>
+                <span id="sw-status" class="status">Checking...</span>
+            </div>
+            <div class="test-item">
+                <span>Service Worker Scope</span>
+                <span id="sw-scope" class="status">-</span>
+            </div>
+            <button onclick="registerSW()">Register Service Worker</button>
+            <button onclick="unregisterSW()">Unregister</button>
+        </div>
+        
+        <!-- Manifest Test -->
+        <div class="test-section">
+            <h2>2. Web App Manifest</h2>
+            <div class="test-item">
+                <span>Manifest Loaded</span>
+                <span id="manifest-status" class="status">Checking...</span>
+            </div>
+            <div class="test-item">
+                <span>App Name</span>
+                <span id="manifest-name">-</span>
+            </div>
+            <div class="test-item">
+                <span>Theme Color</span>
+                <span id="manifest-theme">-</span>
+            </div>
+            <button onclick="checkManifest()">Check Manifest</button>
+        </div>
+        
+        <!-- Icons Test -->
+        <div class="test-section">
+            <h2>3. PWA Icons</h2>
+            <div class="icon-preview" id="icon-preview">
+                <!-- Icons will be loaded here -->
+            </div>
+            <button onclick="checkIcons()">Check Icons</button>
+        </div>
+        
+        <!-- Cache Test -->
+        <div class="test-section">
+            <h2>4. Cache Storage</h2>
+            <div class="test-item">
+                <span>Cache API Support</span>
+                <span id="cache-support" class="status">Checking...</span>
+            </div>
+            <div class="test-item">
+                <span>Cached Items</span>
+                <span id="cache-count">-</span>
+            </div>
+            <button onclick="checkCache()">Check Cache</button>
+            <button onclick="clearCache()">Clear Cache</button>
+        </div>
+        
+        <!-- Install Test -->
+        <div class="test-section">
+            <h2>5. Installation</h2>
+            <div class="test-item">
+                <span>Installable</span>
+                <span id="install-status" class="status">Checking...</span>
+            </div>
+            <div class="test-item">
+                <span>Display Mode</span>
+                <span id="display-mode">-</span>
+            </div>
+            <button id="install-btn" onclick="installApp()" style="display: none;">Install App</button>
+        </div>
+        
+        <!-- Offline Test -->
+        <div class="test-section">
+            <h2>6. Offline Support</h2>
+            <div class="test-item">
+                <span>Network Status</span>
+                <span id="network-status" class="status">Checking...</span>
+            </div>
+            <button onclick="testOffline()">Test Offline Page</button>
+        </div>
+        
+        <!-- Lighthouse Score -->
+        <div class="test-section">
+            <h2>7. Lighthouse Test</h2>
+            <p>เปิด Chrome DevTools → Lighthouse → Run PWA Audit</p>
+            <div class="code">
+                Expected Scores:
+                ✅ Installable
+                ✅ PWA Optimized
+                ✅ Fast and Reliable
+                ✅ Works Offline
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deferredPrompt;
+        
+        // Check Service Worker
+        function checkSW() {
+            if ('serviceWorker' in navigator) {
+                document.getElementById('sw-support').textContent = '✅ Supported';
+                document.getElementById('sw-support').className = 'status success';
+                
+                navigator.serviceWorker.getRegistration().then(reg => {
+                    if (reg) {
+                        document.getElementById('sw-status').textContent = '✅ Active';
+                        document.getElementById('sw-status').className = 'status success';
+                        document.getElementById('sw-scope').textContent = reg.scope;
+                    } else {
+                        document.getElementById('sw-status').textContent = '❌ Not Registered';
+                        document.getElementById('sw-status').className = 'status error';
+                    }
+                });
+            } else {
+                document.getElementById('sw-support').textContent = '❌ Not Supported';
+                document.getElementById('sw-support').className = 'status error';
+            }
+        }
+        
+        // Register Service Worker
+        async function registerSW() {
+            try {
+                const reg = await navigator.serviceWorker.register('/sw.js');
+                alert('✅ Service Worker registered!');
+                checkSW();
+            } catch (error) {
+                alert('❌ Registration failed: ' + error.message);
+            }
+        }
+        
+        // Unregister Service Worker
+        async function unregisterSW() {
+            const reg = await navigator.serviceWorker.getRegistration();
+            if (reg) {
+                await reg.unregister();
+                alert('✅ Service Worker unregistered!');
+                checkSW();
+            }
+        }
+        
+        // Check Manifest
+        async function checkManifest() {
+            try {
+                const response = await fetch('/manifest.json');
+                const manifest = await response.json();
+                
+                document.getElementById('manifest-status').textContent = '✅ Loaded';
+                document.getElementById('manifest-status').className = 'status success';
+                document.getElementById('manifest-name').textContent = manifest.name;
+                document.getElementById('manifest-theme').textContent = manifest.theme_color;
+            } catch (error) {
+                document.getElementById('manifest-status').textContent = '❌ Failed';
+                document.getElementById('manifest-status').className = 'status error';
+            }
+        }
+        
+        // Check Icons
+        async function checkIcons() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            const preview = document.getElementById('icon-preview');
+            preview.innerHTML = '';
+            
+            for (const size of sizes) {
+                const iconUrl = `/icons/icon-${size}x${size}.png`;
+                const item = document.createElement('div');
+                item.className = 'icon-item';
+                item.innerHTML = `
+                    <img src="${iconUrl}" alt="${size}x${size}" onerror="this.style.border='2px solid red'">
+                    <span>${size}x${size}</span>
+                `;
+                preview.appendChild(item);
+            }
+        }
+        
+        // Check Cache
+        async function checkCache() {
+            if ('caches' in window) {
+                document.getElementById('cache-support').textContent = '✅ Supported';
+                document.getElementById('cache-support').className = 'status success';
+                
+                const cacheNames = await caches.keys();
+                let totalItems = 0;
+                
+                for (const name of cacheNames) {
+                    const cache = await caches.open(name);
+                    const keys = await cache.keys();
+                    totalItems += keys.length;
+                }
+                
+                document.getElementById('cache-count').textContent = `${totalItems} items in ${cacheNames.length} caches`;
+            } else {
+                document.getElementById('cache-support').textContent = '❌ Not Supported';
+                document.getElementById('cache-support').className = 'status error';
+            }
+        }
+        
+        // Clear Cache
+        async function clearCache() {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map(name => caches.delete(name)));
+            alert('✅ Cache cleared!');
+            checkCache();
+        }
+        
+        // Check Installation
+        function checkInstall() {
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                 window.navigator.standalone === true;
+            
+            if (isStandalone) {
+                document.getElementById('install-status').textContent = '✅ Installed';
+                document.getElementById('install-status').className = 'status success';
+                document.getElementById('display-mode').textContent = 'Standalone';
+            } else {
+                document.getElementById('install-status').textContent = '⏳ Not Installed';
+                document.getElementById('install-status').className = 'status warning';
+                document.getElementById('display-mode').textContent = 'Browser';
+            }
+        }
+        
+        // Install App
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                alert(outcome === 'accepted' ? '✅ Installed!' : '❌ Cancelled');
+                deferredPrompt = null;
+                document.getElementById('install-btn').style.display = 'none';
+            }
+        }
+        
+        // Check Network
+        function checkNetwork() {
+            const status = navigator.onLine ? '✅ Online' : '❌ Offline';
+            const className = navigator.onLine ? 'status success' : 'status error';
+            document.getElementById('network-status').textContent = status;
+            document.getElementById('network-status').className = className;
+        }
+        
+        // Test Offline
+        function testOffline() {
+            window.open('/offline.html', '_blank');
+        }
+        
+        // Listen for install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'inline-block';
+        });
+        
+        // Listen for network changes
+        window.addEventListener('online', checkNetwork);
+        window.addEventListener('offline', checkNetwork);
+        
+        // Run all checks on load
+        window.addEventListener('load', () => {
+            checkSW();
+            checkManifest();
+            checkCache();
+            checkInstall();
+            checkNetwork();
+        });
+    </script>
+</body>
+</html>

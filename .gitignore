@@ -1,62 +1,69 @@
-# Git Ignore File for Restaurant Stock System
-
-# Environment Variables
+# Environment files
 .env
 .env.local
-.env.production
+.env.*.local
 
-# Composer
+# Vendor directory
 /vendor/
-composer.phar
 
-# Node.js & Tailwind CSS
-node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
+# Node modules
+/node_modules/
 
-# Generated CSS (keep source files only)
-/css/tailwind.css
-
-# Logs
-/logs/*.log
-*.log
-
-# Stock Photos
+# Uploaded files
 /stock-photos/*
-!/stock-photos/.gitkeep
+!/stock-photos/YYYY-MM-DD/
+/stock-photos/YYYY-MM-DD/*
+!/stock-photos/YYYY-MM-DD/.gitkeep
 
-# Excel Exports
-/excel-exports/*
+# Excel exports
+/excel-exports/*.xlsx
 !/excel-exports/.gitkeep
 
-# OS Files
+# PWA - Don't ignore these
+!/icons/
+!/manifest.json
+!/sw.js
+!/offline.html
+!/pwa-install.js
+!/favicon.png
+
+# Logs
+*.log
+error_log
+debug.log
+
+# OS files
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# IDE
+# IDE files
 .vscode/
 .idea/
-*.sublime-project
-*.sublime-workspace
 *.swp
 *.swo
 *~
 
-# Temporary Files
-tmp/
-temp/
+# Temporary files
 *.tmp
-*.bak
+*.temp
 *.cache
 
-# Database Backups
+# Backup files
+*.backup
+*.bak
+*.old
+
+# PHP
+composer.phar
+composer.lock
+
+# Database dumps
 *.sql.gz
 *.sql.zip
-backup/
+backup-*.sql
 
-# Test Files (except test_db.php)
-test*.php
-!test_db.php
+# Test files
+test-*.php
+debug-*.php
+clean-database.php

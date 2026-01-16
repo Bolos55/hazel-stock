@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../work-date-helper.php';
 session_start();
 
 try {
@@ -38,7 +39,9 @@ try {
     } else {
         $employeeId = $employee['id'];
     }
-    $today = date('Y-m-d');
+    
+    // Use work date (resets at 3 AM instead of midnight)
+    $today = getWorkDate();
 
     // เช็กว่าบันทึกวันนี้แล้วหรือยัง
     $stmt = $db->prepare("
@@ -55,11 +58,11 @@ try {
     // เริ่ม transaction
     $db->beginTransaction();
 
-    // แก้ไข column name และเพิ่ม submitted_at
+    // แก้ไข column name และเพิ่ม submitted_at และ employee_name และ quantity_main, quantity_sub
     $stmt = $db->prepare("
         INSERT INTO daily_stock_records
-        (record_date, employee_id, material_id, remaining_quantity, photo_path, submitted_at)
-        VALUES (?, ?, ?, ?, ?, NOW())
+        (record_date, employee_id, employee_name, material_id, remaining_quantity, quantity_main, quantity_sub, photo_path, submitted_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
     ");
 
     foreach ($stockData as $item) {
@@ -70,7 +73,7 @@ try {
             throw new Exception('ข้อมูลวัตถุดิบไม่ครบ');
         }
 
-        if ($item['quantity'] <= 0) {
+        if ($item['quantity'] <= 0 && ($item['quantity_main'] ?? 0) <= 0 && ($item['quantity_sub'] ?? 0) <= 0) {
             continue; // Skip items with 0 quantity
         }
 
@@ -121,8 +124,11 @@ try {
         $stmt->execute([
             $today,
             $employeeId,
+            $employeeName,
             $item['material_id'],
             $item['quantity'],
+            $item['quantity_main'] ?? 0,
+            $item['quantity_sub'] ?? 0,
             $photoPath
         ]);
     }

@@ -1,5 +1,6 @@
 <?php
 require_once '../config.php';
+require_once '../work-date-helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -7,7 +8,8 @@ try {
     // Try to get database connection
     $db = Database::getInstance()->getConnection();
 
-    $today = date('Y-m-d');
+    // Use work date (resets at 3 AM instead of midnight)
+    $today = getWorkDate();
 
     $stmt = $db->prepare("
         SELECT COUNT(*) AS total

@@ -1,66 +1,49 @@
 <?php
 require_once '../config.php';
+require_once '../work-date-helper.php';
 
 try {
     $db = Database::getInstance()->getConnection();
     
     // Get date range (default: yesterday and today)
-    $endDate = $_GET['end_date'] ?? date('Y-m-d');
+    $endDate = $_GET['end_date'] ?? getWorkDate();
     $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime($endDate . ' -1 day'));
+    
+    // Get all materials with their order
+    $stmt = $db->query("
+        SELECT id, material_name, unit, sub_unit, display_order
+        FROM raw_materials
+        ORDER BY display_order ASC
+    ");
+    $materials = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Get stock records for both dates
     $stmt = $db->prepare("
         SELECT 
-            rm.material_name,
-            rm.unit,
-            rm.sub_unit,
+            dsr.material_id,
             dsr.record_date,
-            dsr.remaining_quantity,
+            dsr.quantity_main,
+            dsr.quantity_sub,
             e.employee_name
         FROM daily_stock_records dsr
-        JOIN raw_materials rm ON dsr.material_id = rm.id
         JOIN employees e ON dsr.employee_id = e.id
         WHERE dsr.record_date IN (?, ?)
-        ORDER BY rm.display_order ASC, dsr.record_date ASC
+        ORDER BY dsr.record_date ASC
     ");
     $stmt->execute([$startDate, $endDate]);
-    $records = $stmt->fetchAll();
+    $records = $stmt->fetchAll(PDO::FETCH_GROUP);
     
     // Get stock additions between dates
     $stmt = $db->prepare("
         SELECT 
-            rm.material_name,
-            SUM(sa.quantity) as total_added
-        FROM stock_additions sa
-        JOIN raw_materials rm ON sa.material_id = rm.id
-        WHERE DATE(sa.added_at) BETWEEN ? AND ?
-        GROUP BY sa.material_id, rm.material_name
+            material_id,
+            SUM(quantity) as total_added
+        FROM stock_additions
+        WHERE DATE(added_at) BETWEEN ? AND ?
+        GROUP BY material_id
     ");
     $stmt->execute([$startDate, $endDate]);
-    $additions = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-    
-    // Process data for usage calculation
-    $usageData = [];
-    foreach ($records as $record) {
-        $materialName = $record['material_name'];
-        if (!isset($usageData[$materialName])) {
-            $usageData[$materialName] = [
-                'material_name' => $materialName,
-                'unit' => $record['unit'],
-                'sub_unit' => $record['sub_unit'],
-                'start_stock' => 0,
-                'end_stock' => 0,
-                'added_stock' => $additions[$materialName] ?? 0,
-                'employee' => $record['employee_name']
-            ];
-        }
-        
-        if ($record['record_date'] === $startDate) {
-            $usageData[$materialName]['start_stock'] = $record['remaining_quantity'];
-        } elseif ($record['record_date'] === $endDate) {
-            $usageData[$materialName]['end_stock'] = $record['remaining_quantity'];
-        }
-    }
+    $additions = $stmt->fetchAll(PDO::FETCH_GROUP);
     
     // Generate CSV
     $filename = "usage_report_{$startDate}_to_{$endDate}.csv";
@@ -74,43 +57,111 @@ try {
     
     $output = fopen('php://output', 'w');
     
+    // Title
+    fputcsv($output, ['รายงานการใช้วัตถุดิบ - Hazel Beverages & Appetizers']);
+    fputcsv($output, ['ระหว่างวันที่: ' . date('d/m/Y', strtotime($startDate)) . ' ถึง ' . date('d/m/Y', strtotime($endDate))]);
+    fputcsv($output, ['สร้างเมื่อ: ' . date('d/m/Y H:i:s')]);
+    fputcsv($output, []); // Empty row
+    
     // Headers
     fputcsv($output, [
+        'ลำดับ',
         'วัตถุดิบ',
         'หน่วยหลัก',
         'หน่วยย่อย',
-        'สต็อกเริ่มต้น (' . date('d/m/Y', strtotime($startDate)) . ')',
-        'สต็อกสิ้นสุด (' . date('d/m/Y', strtotime($endDate)) . ')',
-        'เพิ่มเข้า',
-        'ใช้ไป',
+        'สต็อกเริ่มต้น (หน่วยหลัก)',
+        'สต็อกเริ่มต้น (หน่วยย่อย)',
+        'เพิ่มเข้า (หน่วยหลัก)',
+        'เพิ่มเข้า (หน่วยย่อย)',
+        'สต็อกสิ้นสุด (หน่วยหลัก)',
+        'สต็อกสิ้นสุด (หน่วยย่อย)',
+        'ใช้ไป (หน่วยหลัก)',
+        'ใช้ไป (หน่วยย่อย)',
         'พนักงานบันทึก',
-        'หมายเหตุ'
+        'สถานะ'
     ]);
     
-    foreach ($usageData as $data) {
-        $used = $data['start_stock'] + $data['added_stock'] - $data['end_stock'];
-        $note = '';
+    $rowNum = 1;
+    foreach ($materials as $material) {
+        $materialId = $material['id'];
         
-        if ($used > 0) {
-            $note = 'ใช้งานปกติ';
-        } elseif ($used < 0) {
-            $note = 'เพิ่มขึ้น (รับของเข้าหรือแก้ไขข้อมูล)';
+        // Get start stock (from start date)
+        $startMain = 0;
+        $startSub = 0;
+        $employeeName = '-';
+        
+        if (isset($records[$materialId])) {
+            foreach ($records[$materialId] as $record) {
+                if ($record['record_date'] === $startDate) {
+                    $startMain = $record['quantity_main'] ?? 0;
+                    $startSub = $record['quantity_sub'] ?? 0;
+                    $employeeName = $record['employee_name'];
+                }
+            }
+        }
+        
+        // Get end stock (from end date)
+        $endMain = 0;
+        $endSub = 0;
+        
+        if (isset($records[$materialId])) {
+            foreach ($records[$materialId] as $record) {
+                if ($record['record_date'] === $endDate) {
+                    $endMain = $record['quantity_main'] ?? 0;
+                    $endSub = $record['quantity_sub'] ?? 0;
+                    $employeeName = $record['employee_name'];
+                }
+            }
+        }
+        
+        // Get additions
+        $addedMain = 0;
+        $addedSub = 0;
+        
+        if (isset($additions[$materialId]) && !empty($additions[$materialId])) {
+            // For now, assume additions go to main unit
+            // In future, you may want to add quantity_main and quantity_sub to stock_additions table
+            $addedMain = $additions[$materialId][0]['total_added'] ?? 0;
+        }
+        
+        // Calculate usage: Start + Added - End = Used
+        $usedMain = $startMain + $addedMain - $endMain;
+        $usedSub = $startSub + $addedSub - $endSub;
+        
+        // Determine status
+        $status = '';
+        if ($usedMain > 0 || $usedSub > 0) {
+            $status = '✓ ใช้งานปกติ';
+        } elseif ($usedMain < 0 || $usedSub < 0) {
+            $status = '⚠ เพิ่มขึ้น (รับของเข้า)';
         } else {
-            $note = 'ไม่มีการใช้งาน';
+            $status = '- ไม่มีการใช้งาน';
         }
         
         fputcsv($output, [
-            $data['material_name'],
-            $data['unit'],
-            $data['sub_unit'] ?: '-',
-            number_format($data['start_stock'], 2),
-            number_format($data['end_stock'], 2),
-            number_format($data['added_stock'], 2),
-            number_format($used, 2),
-            $data['employee'],
-            $note
+            $rowNum++,
+            $material['material_name'],
+            $material['unit'] ?: '-',
+            $material['sub_unit'] ?: '-',
+            number_format($startMain, 2),
+            number_format($startSub, 2),
+            number_format($addedMain, 2),
+            number_format($addedSub, 2),
+            number_format($endMain, 2),
+            number_format($endSub, 2),
+            number_format($usedMain, 2),
+            number_format($usedSub, 2),
+            $employeeName,
+            $status
         ]);
     }
+    
+    // Summary
+    fputcsv($output, []); // Empty row
+    fputcsv($output, ['สรุป']);
+    fputcsv($output, ['วันที่เริ่มต้น:', date('d/m/Y', strtotime($startDate))]);
+    fputcsv($output, ['วันที่สิ้นสุด:', date('d/m/Y', strtotime($endDate))]);
+    fputcsv($output, ['จำนวนวัตถุดิบทั้งหมด:', count($materials), 'รายการ']);
     
     fclose($output);
     

@@ -1,195 +1,168 @@
 # 🏪 Hazel Stock Management System
 
-ระบบจัดการสต็อกวัตถุดิบสำหรับร้าน Hazel – Beverages & Appetizers
+ระบบจัดการสต็อกวัตถุดิบสำหรับ **Hazel Beverages & Appetizers**
 
-## 🚀 Features
+## 📋 คุณสมบัติ
 
-- 📊 บันทึกสต็อกวัตถุดิบรายวัน
-- 📸 อัปโหลดรูปภาพประกอบการบันทึก
-- 📋 ส่งออกข้อมูลเป็น Excel
-- 👥 จัดการข้อมูลพนักงาน
-- 📦 จัดการข้อมูลวัตถุดิบ
-- ⏰ ระบบ Cron Job สำหรับส่งออกอัตโนมัติ
-- 🎨 **Modern UI with Tailwind CSS**
+### 🎯 สำหรับพนักงาน
+- ✅ บันทึกสต็อกวัตถุดิบประจำวัน
+- 📸 ถ่ายรูปยืนยันสต็อกด้วยกล้องมือถือ
+- 📊 กรอกจำนวนแบบ 2 หน่วย (หน่วยหลัก + หน่วยย่อย)
+- 💾 บันทึกข้อมูลอัตโนมัติ (localStorage)
+- 📤 แชร์ผลการบันทึกผ่าน LINE/Messenger
 
-## 🛠️ Installation
+### 👑 สำหรับแอดมิน
+- 👥 จัดการพนักงาน (เพิ่ม/แก้ไข/ปิดการใช้งาน)
+- 🧪 จัดการวัตถุดิบ (เพิ่ม/แก้ไข/ลบ)
+- 📊 ดูข้อมูลสต็อกย้อนหลัง
+- ✏️ แก้ไขข้อมูลสต็อก
+- 📈 รายงานการใช้งาน (เปรียบเทียบ)
+- 📥 Export CSV/Excel
+- 🔐 เปลี่ยนรหัสผ่าน
 
-### 1. Clone Repository
+## 🛠️ เทคโนโลยีที่ใช้
+
+- **Backend**: PHP 7.4+
+- **Database**: MySQL 5.7+
+- **Frontend**: HTML5, CSS3, JavaScript (Vanilla)
+- **CSS Framework**: Tailwind CSS (Custom)
+- **Libraries**: 
+  - PhpSpreadsheet (Excel export)
+  - ZipStream (File compression)
+
+## 📦 การติดตั้ง
+
+### ความต้องการของระบบ
+- PHP 7.4 หรือสูงกว่า
+- MySQL 5.7 หรือสูงกว่า
+- Web Server (Apache/Nginx)
+- Composer
+
+### ขั้นตอนการติดตั้ง
+
+1. **Clone repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/Bolos55/hazel-stock.git
 cd hazel-stock
 ```
 
-### 2. Install Dependencies
+2. **ติดตั้ง dependencies**
 ```bash
-# PHP Dependencies
 composer install
-
-# Node.js Dependencies (for Tailwind CSS)
-npm install
 ```
 
-### 3. Build CSS
+3. **สร้างไฟล์ .env**
 ```bash
-# Build Tailwind CSS (production)
-npm run build
-
-# Or watch for changes (development)
-npm run build-css
-
-# Windows users can use batch files:
-build.bat       # Build once
-watch.bat       # Watch for changes
+cp .env.example .env
 ```
 
-### 4. Database Setup
-```bash
-# Import database schema
-mysql -u username -p database_name < database.sql
-```
-
-### 5. Environment Variables
-สร้างไฟล์ `.env` หรือตั้งค่า environment variables:
-
+4. **แก้ไขไฟล์ .env**
 ```env
-DB_HOST=your-database-host
-DB_PORT=3306
-DB_NAME=your-database-name
-DB_USER=your-username
-DB_PASS=your-password
+DB_HOST=localhost
+DB_NAME=hazel_stock
+DB_USER=root
+DB_PASS=
+DB_CHARSET=utf8mb4
 ```
 
-### 6. Test Connection
-เปิด `http://your-domain/test_db.php` เพื่อทดสอบการเชื่อมต่อฐานข้อมูล
-
-## 🎨 Tailwind CSS Setup
-
-โปรเจกต์นี้ใช้ Tailwind CSS สำหรับ styling:
-
-### Development
+5. **สร้างฐานข้อมูล**
 ```bash
-# Watch for changes and rebuild CSS automatically
-npm run build-css
-# หรือ
-watch.bat
+mysql -u root -p < database.sql
 ```
 
-### Production
+6. **เปิดเว็บเซิร์ฟเวอร์**
 ```bash
-# Build minified CSS for production
-npm run build
-# หรือ
-build.bat
+php -S localhost:8000
 ```
 
-### Customization
-แก้ไข `tailwind.config.js` เพื่อปรับแต่ง theme:
-- สี Hazel brand: `hazel-red`, `hazel-bg`
-- Font: Thai fonts (Prompt, Sarabun)
-- Max width: `max-w-app` (600px)
+7. **เข้าใช้งาน**
+- เปิดเบราว์เซอร์: `http://localhost:8000`
+- Login แอดมิน: `bosszazababa@gmail.com` / `Bossmaha_2003`
 
-## 📁 Project Structure
+## 📱 Mobile Optimization
+
+ระบบออกแบบมาสำหรับมือถือเป็นหลัก:
+- ✅ Responsive Design (รองรับทุกขนาดหน้าจอ)
+- ✅ iPhone 16 Pro Optimized
+- ✅ Touch-friendly UI
+- ✅ Camera Integration
+- ✅ PWA Ready
+
+## 🗂️ โครงสร้างโปรเจค
 
 ```
 hazel-stock/
 ├── api/                    # API endpoints
-├── assets/                 # Static assets
-├── cron/                   # Cron job scripts
-├── css/
-│   ├── style.css          # Original CSS (deprecated)
-│   └── tailwind.css       # Generated Tailwind CSS
-├── src/
-│   └── input.css          # Tailwind source file
-├── js/                    # JavaScript files
-├── materials/             # Material management
-├── stock-photos/          # Uploaded photos
-├── vendor/                # Composer dependencies
-├── node_modules/          # Node.js dependencies
-├── package.json           # Node.js dependencies
-├── tailwind.config.js     # Tailwind configuration
-├── build.bat              # Windows build script
-├── watch.bat              # Windows watch script
+│   ├── delete-record.php
+│   ├── export-csv.php
+│   ├── export-usage-report.php
+│   ├── get-materials.php
+│   ├── get-today-record.php
+│   └── submit-stock.php
+├── assets/                 # รูปภาพและไฟล์สื่อ
+├── css/                    # Stylesheets
+├── excel-exports/          # ไฟล์ Excel ที่ export
+├── stock-photos/           # รูปภาพสต็อก
+├── vendor/                 # Composer dependencies
+├── .env.example           # ตัวอย่างไฟล์ environment
+├── .gitignore             # Git ignore rules
+├── auth.php               # Authentication functions
 ├── config.php             # Database configuration
 ├── database.sql           # Database schema
-├── index.php              # Main application
-└── test_db.php           # Database connection test
+├── index.php              # หน้าหลัก (บันทึกสต็อก)
+├── login.php              # หน้า Login
+├── manage-employees.php   # จัดการพนักงาน
+├── manage-materials.php   # จัดการวัตถุดิบ
+├── view-records.php       # ดูข้อมูลสต็อก
+└── README.md              # เอกสารนี้
 ```
 
-## 🔧 API Endpoints
+## 🔐 ความปลอดภัย
 
-### Stock Management
-- `POST /api/submit-stock.php` - บันทึกข้อมูลสต็อก
-- `GET /api/get-today-record.php` - ตรวจสอบการบันทึกวันนี้
-- `GET /api/export-daily-stock.php?date=YYYY-MM-DD` - ส่งออกข้อมูลสต็อก
+- ✅ Password hashing (bcrypt)
+- ✅ SQL Injection protection (PDO Prepared Statements)
+- ✅ XSS protection (htmlspecialchars)
+- ✅ CSRF protection (Session-based)
+- ✅ Role-based access control (Admin/Employee)
 
-### Materials
-- `GET /api/get-materials.php` - ดึงรายการวัตถุดิบ
+## 📸 Screenshots
 
-### File Upload
-- `POST /api/upload-photo.php` - อัปโหลดรูปภาพ
+### หน้าบันทึกสต็อก
+![Stock Recording](docs/screenshots/stock-recording.png)
 
-### Excel Export
-- `GET /api/export-excel.php?date=YYYY-MM-DD` - ส่งออก Excel
-- `GET /api/generate-excel.php?date=YYYY-MM-DD` - สร้าง Excel (testing)
+### หน้าดูข้อมูล
+![View Records](docs/screenshots/view-records.png)
 
-## 🗄️ Database Schema
+### หน้าจัดการวัตถุดิบ
+![Manage Materials](docs/screenshots/manage-materials.png)
 
-### Tables
-- `employees` - ข้อมูลพนักงาน
-- `raw_materials` - ข้อมูลวัตถุดิบ
-- `daily_stock_records` - บันทึกสต็อกรายวัน
-- `excel_export_log` - ประวัติการส่งออก Excel
+## 🤝 การพัฒนา
 
-## ⏰ Cron Job Setup
+### Branch Strategy
+- `main` - Production branch
+- `develop` - Development branch
+- `feature/*` - Feature branches
 
-เพิ่ม cron job สำหรับส่งออก Excel อัตโนมัติ:
-
-```bash
-# Export Excel ทุกวันเวลา 23:55
-55 23 * * * /usr/bin/php /path/to/hazel-stock/cron/daily-excel-export.php
-```
-
-## 🔒 Security Features
-
-- ✅ SQL Injection Protection (Prepared Statements)
-- ✅ Input Validation
-- ✅ File Upload Security
-- ✅ Path Traversal Protection
-- ✅ Error Handling
-- ✅ Database Transaction Support
-
-## 🚀 Deployment
-
-### Render.com
-1. เชื่อมต่อ GitHub repository
-2. ตั้งค่า Environment Variables
-3. Deploy
-
-### Docker
-```bash
-docker build -t hazel-stock .
-docker run -p 80:80 hazel-stock
-```
-
-## 🐛 Troubleshooting
-
-### Database Connection Issues
-1. ตรวจสอบ environment variables
-2. ทดสอบการเชื่อมต่อด้วย `test_db.php`
-3. ตรวจสอบ SSL settings สำหรับ cloud databases
-
-### File Upload Issues
-1. ตรวจสอบ permissions ของโฟลเดอร์ `stock-photos/`
-2. ตรวจสอบ `upload_max_filesize` ใน PHP config
-
-### Excel Export Issues
-1. ตรวจสอบว่า PhpSpreadsheet ติดตั้งแล้ว
-2. ตรวจสอบ permissions ของโฟลเดอร์ `excel-exports/`
+### Coding Standards
+- PSR-12 Coding Style
+- UTF-8 encoding
+- Thai language for UI
+- English for code comments
 
 ## 📝 License
 
-Private project for Hazel – Beverages & Appetizers
+This project is proprietary software developed for **Hazel Beverages & Appetizers**.
 
-## 👨‍💻 Support
+## 👨‍💻 Developer
 
-สำหรับการสนับสนุนหรือรายงานปัญหา กรุณาติดต่อทีมพัฒนา
+Developed by **Kiro AI** for **ภูริวัฒน์ โภคสวัสดิ์**
+
+## 📞 Support
+
+For support, please contact:
+- Email: bosszazababa@gmail.com
+- GitHub Issues: [Create an issue](https://github.com/Bolos55/hazel-stock/issues)
+
+---
+
+Made with ❤️ for Hazel Beverages & Appetizers

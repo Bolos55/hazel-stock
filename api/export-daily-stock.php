@@ -1,12 +1,13 @@
 <?php
 require_once '../config.php';
+require_once '../work-date-helper.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
 try {
     $db = Database::getInstance()->getConnection();
 
-    $recordDate = $_GET['date'] ?? date('Y-m-d');
+    $recordDate = $_GET['date'] ?? getWorkDate();
 
     // เพิ่ม date validation เพื่อป้องกัน SQL injection
     if (!validateDate($recordDate)) {

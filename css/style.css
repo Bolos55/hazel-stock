@@ -29,6 +29,18 @@ html {
   font-variation-settings: normal; /* 6 */
 }
 
+/* ================= PREVENT OVERFLOW - NO HORIZONTAL SCROLL ================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   margin: 0; /* 1 */
   line-height: inherit; /* 2 */
@@ -36,6 +48,8 @@ body {
   background: #FAF7F2;
   color: #333;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  max-width: 100vw;
 }
 
 /* Tailwind Base Classes */
@@ -399,10 +413,12 @@ body {
 /* Custom App Styles */
 .app-container {
   max-width: 600px;
+  width: 100%;
   margin: 0 auto;
   min-height: 100vh;
   background: #f5f5f5;
   overflow-x: hidden;
+  position: relative;
 }
 
 .app-header {
@@ -410,6 +426,8 @@ body {
   border-bottom: 1px solid #E5E5E5;
   padding: 1.5rem 1rem;
   text-align: center;
+  width: 100%;
+  max-width: 100%;
 }
 
 .hazel-header {
@@ -417,6 +435,21 @@ body {
   color: white;
   padding: 1.5rem 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+}
+
+.hazel-header * {
+  color: white !important;
+}
+
+.hazel-header h1,
+.hazel-header h2,
+.hazel-header h3,
+.hazel-header p,
+.hazel-header span,
+.hazel-header div {
+  color: white !important;
 }
 
 .hazel-logo {
@@ -442,6 +475,9 @@ body {
 
 .employee-section, .materials-section, .submitted-section {
   padding: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .employee-card, .material-card {
@@ -451,10 +487,15 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   margin-bottom: 1rem;
   border: 1px solid rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .form-input {
   width: 100%;
+  max-width: 100%;
   padding: 0.875rem 1rem;
   border: 1.5px solid rgb(209 213 219);
   border-radius: 0.75rem;
@@ -462,6 +503,7 @@ body {
   margin-bottom: 1rem;
   transition: all 0.2s ease;
   background: #FAFAFA;
+  box-sizing: border-box;
 }
 
 .form-input:focus {
@@ -550,6 +592,27 @@ body {
   display: block;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border: 2px solid #f0f0f0;
+}
+
+/* Tables - prevent overflow */
+table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+}
+
+.overflow-x-auto {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Images - prevent overflow */
+img {
+  max-width: 100%;
+  height: auto;
 }
 
 .camera-modal {
@@ -675,5 +738,294 @@ body {
   .btn-primary, .btn-secondary {
     padding: 0.75rem 1rem;
     font-size: 0.9rem;
+  }
+}
+
+
+/* ================= MOBILE OPTIMIZATION FOR IPHONE 16 PRO ================= */
+/* iPhone 16 Pro: 6.3" display, 1206 x 2622 pixels, 460 ppi */
+
+/* Optimize for mobile viewport */
+@media (max-width: 430px) {
+  /* Prevent horizontal scroll */
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .app-container {
+    padding: 0;
+    max-width: 100vw;
+  }
+  
+  /* Header optimization */
+  .hazel-header {
+    padding: 1rem 0.75rem;
+  }
+  
+  .hazel-logo {
+    width: 3.75rem;
+    height: 3.75rem;
+  }
+  
+  .hazel-subtitle {
+    font-size: 0.8125rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .app-header h1 {
+    font-size: 1.25rem;
+    margin: 0.5rem 0;
+  }
+  
+  .current-date {
+    font-size: 0.8125rem;
+  }
+  
+  /* Content sections */
+  .employee-section, .materials-section, .submitted-section {
+    padding: 0.75rem;
+  }
+  
+  .employee-card, .material-card {
+    padding: 1rem;
+    margin-bottom: 0.875rem;
+    border-radius: 0.875rem;
+  }
+  
+  /* Form inputs - prevent zoom on iOS */
+  .form-input, .quantity-input, .quantity-input-main, .quantity-input-sub {
+    font-size: 16px !important; /* Prevents iOS zoom */
+    padding: 0.875rem;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  /* Buttons */
+  .btn-primary, .btn-secondary {
+    padding: 0.875rem 1rem;
+    font-size: 0.9375rem;
+    border-radius: 0.75rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .btn-small {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+  
+  /* Photo preview */
+  .photo-preview, .preview-image {
+    max-height: 160px;
+    border-radius: 0.75rem;
+  }
+  
+  .camera-preview {
+    max-width: 100%;
+    max-height: 180px;
+  }
+  
+  /* Camera section */
+  .camera-section {
+    padding: 0.875rem;
+    margin-top: 0.75rem;
+  }
+  
+  .btn-camera, .btn-capture, .btn-retake {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 0.625rem;
+  }
+  
+  /* Grid layouts */
+  .grid-cols-2 {
+    gap: 0.75rem;
+  }
+  
+  /* Tables */
+  table {
+    font-size: 0.875rem;
+  }
+  
+  table th, table td {
+    padding: 0.625rem 0.5rem;
+  }
+  
+  /* Footer */
+  .hazel-footer {
+    padding: 2rem 0 1rem 0;
+    margin-top: 2rem;
+  }
+  
+  .footer-content {
+    padding: 0 1rem;
+    gap: 1.5rem;
+  }
+  
+  .footer-logo, .owner-photo {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .footer-text h3 {
+    font-size: 1.25rem;
+  }
+  
+  .footer-text p {
+    font-size: 0.875rem;
+  }
+  
+  .owner-section {
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .owner-info h4 {
+    font-size: 1rem;
+  }
+  
+  .owner-info p {
+    font-size: 0.8125rem;
+  }
+  
+  .owner-quote {
+    font-size: 0.8125rem;
+  }
+  
+  /* Modal */
+  .fixed {
+    position: fixed;
+  }
+  
+  .inset-0 {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
+  
+  /* Touch optimization */
+  button, a, input, select {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    touch-action: manipulation;
+  }
+  
+  /* Prevent text selection on buttons */
+  button, .btn-primary, .btn-secondary, .btn-camera {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Safe area for iPhone notch */
+  .app-header {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+  
+  .app-container {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* iPhone 16 Pro specific (393px width in portrait) */
+@media (max-width: 393px) and (min-height: 800px) {
+  .hazel-logo {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  .employee-card, .material-card {
+    padding: 0.875rem;
+  }
+  
+  .btn-primary, .btn-secondary {
+    padding: 0.8125rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .photo-preview, .preview-image {
+    max-height: 150px;
+  }
+}
+
+/* Landscape mode */
+@media (max-height: 430px) and (orientation: landscape) {
+  .hazel-header {
+    padding: 0.75rem;
+  }
+  
+  .hazel-logo {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .app-header h1 {
+    font-size: 1.125rem;
+  }
+  
+  .employee-card, .material-card {
+    padding: 0.75rem;
+  }
+  
+  .photo-preview, .preview-image {
+    max-height: 120px;
+  }
+  
+  .footer-content {
+    flex-direction: row;
+    gap: 1rem;
+  }
+}
+
+/* Force light mode - disable dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #FAF7F2 !important;
+    color: #333 !important;
+  }
+  
+  .app-container {
+    background: #f5f5f5 !important;
+  }
+  
+  .employee-card, .material-card {
+    background: white !important;
+    border-color: rgba(0, 0, 0, 0.05) !important;
+    color: #333 !important;
+  }
+  
+  .form-input {
+    background: #FAFAFA !important;
+    border-color: rgb(209 213 219) !important;
+    color: #333 !important;
+  }
+  
+  .form-input:focus {
+    background: white !important;
+  }
+  
+  /* Force all text to be dark */
+  * {
+    color-scheme: light !important;
+  }
+  
+  h1, h2, h3, h4, h5, h6, p, span, div, label, input, select, textarea, button {
+    color: inherit !important;
+  }
+  
+  .text-gray-600 {
+    color: rgb(75 85 99) !important;
+  }
+  
+  .text-gray-700 {
+    color: rgb(55 65 81) !important;
+  }
+  
+  .text-gray-800 {
+    color: rgb(31 41 55) !important;
   }
 }

@@ -1,52 +1,53 @@
 <?php
 require_once 'config.php';
+require_once 'auth.php';
+require_once 'work-date-helper.php';
+
+// Require admin access for viewing records
+requireAdmin();
 
 try {
     $db = Database::getInstance()->getConnection();
     
-    // Get date filter
-    $date = $_GET['date'] ?? date('Y-m-d');
+    // Get date filter - use work date as default
+    $date = $_GET['date'] ?? getWorkDate();
     
     // Get records for the date (optimized query)
-    try {
-        $stmt = $db->prepare("
-            SELECT 
-                dsr.record_date,
-                dsr.remaining_quantity,
-                dsr.photo_path,
-                dsr.submitted_at,
-                e.full_name as employee_name,
-                rm.material_name,
-                rm.unit,
-                COALESCE(rm.sub_unit, '') as sub_unit
-            FROM daily_stock_records dsr
-            FORCE INDEX (idx_record_date)
-            JOIN employees e ON dsr.employee_id = e.id
-            JOIN raw_materials rm ON dsr.material_id = rm.id
-            WHERE dsr.record_date = ?
-            ORDER BY rm.display_order ASC
-        ");
-    } catch (Exception $e) {
-        // Fallback if sub_unit column doesn't exist
-        $stmt = $db->prepare("
-            SELECT 
-                dsr.record_date,
-                dsr.remaining_quantity,
-                dsr.photo_path,
-                dsr.submitted_at,
-                e.full_name as employee_name,
-                rm.material_name,
-                rm.unit,
-                '' as sub_unit
-            FROM daily_stock_records dsr
-            JOIN employees e ON dsr.employee_id = e.id
-            JOIN raw_materials rm ON dsr.material_id = rm.id
-            WHERE dsr.record_date = ?
-            ORDER BY rm.display_order ASC
-        ");
-    }
+    $stmt = $db->prepare("
+        SELECT 
+            dsr.record_date,
+            dsr.quantity_main,
+            dsr.quantity_sub,
+            dsr.photo_path,
+            dsr.submitted_at,
+            COALESCE(dsr.employee_name, e.employee_name) as employee_name,
+            rm.material_name,
+            rm.unit,
+            rm.sub_unit,
+            rm.display_order
+        FROM daily_stock_records dsr
+        LEFT JOIN employees e ON dsr.employee_id = e.id
+        JOIN raw_materials rm ON dsr.material_id = rm.id
+        WHERE dsr.record_date = ?
+        ORDER BY rm.display_order ASC
+    ");
     $stmt->execute([$date]);
     $records = $stmt->fetchAll();
+    
+    // Calculate completion stats
+    $totalItems = count($records);
+    $itemsWithData = 0;
+    $itemsWithPhoto = 0;
+    $itemsComplete = 0;
+    
+    foreach ($records as $record) {
+        $hasData = ($record['quantity_main'] > 0 || $record['quantity_sub'] > 0);
+        $hasPhoto = (!empty($record['photo_path']) && $record['photo_path'] !== 'no-photo.jpg');
+        
+        if ($hasData) $itemsWithData++;
+        if ($hasPhoto) $itemsWithPhoto++;
+        if ($hasData && $hasPhoto) $itemsComplete++;
+    }
     
     // Get available dates
     $stmt = $db->query("
@@ -65,8 +66,18 @@ try {
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#C4161C">
     <title>ดูข้อมูลสต็อก - Hazel</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Footer Styles */
@@ -230,7 +241,7 @@ try {
                         <?php foreach ($dates as $d): ?>
                             <option value="<?= $d['record_date'] ?>" <?= $d['record_date'] === $date ? 'selected' : '' ?>>
                                 <?= date('d/m/Y', strtotime($d['record_date'])) ?>
-                                <?= $d['record_date'] === date('Y-m-d') ? ' (วันนี้)' : '' ?>
+                                <?= $d['record_date'] === getWorkDate() ? ' (วันนี้)' : '' ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -261,6 +272,36 @@ try {
                         <p class="text-gray-600">พนักงาน: <strong class="text-red-600"><?= htmlspecialchars($records[0]['employee_name']) ?></strong></p>
                         <p class="text-sm text-gray-500">บันทึกเมื่อ: <?= date('H:i น.', strtotime($records[0]['submitted_at'])) ?></p>
                         
+                        <!-- Completion Stats -->
+                        <div class="mt-3 p-4 bg-gray-50 rounded-lg">
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold text-blue-600"><?= $totalItems ?></div>
+                                    <div class="text-gray-600">รายการทั้งหมด</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold <?= $itemsWithData === $totalItems ? 'text-green-600' : 'text-orange-600' ?>">
+                                        <?= $itemsWithData ?>/<?= $totalItems ?>
+                                    </div>
+                                    <div class="text-gray-600">กรอกจำนวนแล้ว</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold <?= $itemsWithPhoto === $totalItems ? 'text-green-600' : 'text-orange-600' ?>">
+                                        <?= $itemsWithPhoto ?>/<?= $totalItems ?>
+                                    </div>
+                                    <div class="text-gray-600">ถ่ายรูปแล้ว</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold <?= $itemsComplete === $totalItems ? 'text-green-600' : 'text-red-600' ?>">
+                                        <?= $itemsComplete ?>/<?= $totalItems ?>
+                                    </div>
+                                    <div class="text-gray-600">
+                                        <?= $itemsComplete === $totalItems ? '✓ ครบถ้วน' : '⚠ ยังไม่ครบ' ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <!-- Edit Button -->
                         <div class="mt-3 space-x-2">
                             <a href="/edit-record.php?date=<?= $date ?>" 
@@ -279,39 +320,70 @@ try {
                             <thead>
                                 <tr class="bg-gray-50">
                                     <th class="border border-gray-300 px-4 py-2 text-left">วัตถุดิบ</th>
-                                    <th class="border border-gray-300 px-4 py-2 text-center">หน่วย</th>
-                                    <th class="border border-gray-300 px-4 py-2 text-right">จำนวนคงเหลือ</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-center">จำนวน (หน่วยหลัก)</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-center">จำนวน (หน่วยย่อย)</th>
                                     <th class="border border-gray-300 px-4 py-2 text-center">รูปภาพ</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-center">สถานะ</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($records as $record): ?>
-                                    <tr class="hover:bg-gray-50">
+                                <?php foreach ($records as $record): 
+                                    $hasData = ($record['quantity_main'] > 0 || $record['quantity_sub'] > 0);
+                                    $hasPhoto = (!empty($record['photo_path']) && $record['photo_path'] !== 'no-photo.jpg');
+                                    $isComplete = $hasData && $hasPhoto;
+                                    $rowClass = $isComplete ? '' : 'bg-yellow-50';
+                                ?>
+                                    <tr class="hover:bg-gray-50 <?= $rowClass ?>">
                                         <td class="border border-gray-300 px-4 py-2"><?= htmlspecialchars($record['material_name']) ?></td>
                                         <td class="border border-gray-300 px-4 py-2 text-center">
-                                            <?= htmlspecialchars($record['unit']) ?>
-                                            <?php if ($record['sub_unit']): ?>
-                                                <br><span class="text-xs text-gray-600"><?= htmlspecialchars($record['sub_unit']) ?></span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td class="border border-gray-300 px-4 py-2 text-right font-mono">
-                                            <?= number_format($record['remaining_quantity'], 2) ?>
+                                            <span class="font-mono <?= $record['quantity_main'] > 0 ? 'text-green-600 font-semibold' : 'text-gray-400' ?>">
+                                                <?= number_format($record['quantity_main'], 2) ?>
+                                            </span>
+                                            <br>
+                                            <span class="text-xs text-gray-600"><?= htmlspecialchars($record['unit'] ?: '-') ?></span>
                                         </td>
                                         <td class="border border-gray-300 px-4 py-2 text-center">
-                                            <?php if (!empty($record['photo_path']) && $record['photo_path'] !== 'no-photo.jpg'): ?>
+                                            <?php if ($record['sub_unit']): ?>
+                                                <span class="font-mono <?= $record['quantity_sub'] > 0 ? 'text-green-600 font-semibold' : 'text-gray-400' ?>">
+                                                    <?= number_format($record['quantity_sub'], 2) ?>
+                                                </span>
+                                                <br>
+                                                <span class="text-xs text-gray-600"><?= htmlspecialchars($record['sub_unit']) ?></span>
+                                            <?php else: ?>
+                                                <span class="text-gray-400 text-xs">-</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-center">
+                                            <?php if ($hasPhoto): ?>
                                                 <?php 
                                                 $photoPath = 'stock-photos/' . $record['photo_path'];
                                                 if (file_exists($photoPath)): 
                                                 ?>
-                                                    <img src="<?= $photoPath ?>" 
-                                                         alt="รูปสต็อก" 
-                                                         class="w-16 h-12 object-cover rounded border cursor-pointer"
-                                                         onclick="showPhotoModal('<?= $photoPath ?>', '<?= htmlspecialchars($record['material_name']) ?>')">
+                                                    <a href="<?= $photoPath ?>" target="_blank">
+                                                        <img src="<?= $photoPath ?>" 
+                                                             alt="รูปสต็อก" 
+                                                             class="w-16 h-12 object-cover rounded border mx-auto hover:opacity-75 transition-opacity">
+                                                    </a>
                                                 <?php else: ?>
-                                                    <span class="text-red-500 text-xs">ไม่พบรูป</span>
+                                                    <span class="text-red-500 text-xs">❌ ไม่พบรูป</span>
                                                 <?php endif; ?>
                                             <?php else: ?>
-                                                <span class="text-gray-500 text-xs">ไม่มีรูป</span>
+                                                <span class="text-red-500 text-xs">❌ ไม่มีรูป</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="border border-gray-300 px-4 py-2 text-center">
+                                            <?php if ($isComplete): ?>
+                                                <span class="text-green-600 font-semibold">✓ ครบ</span>
+                                            <?php else: ?>
+                                                <span class="text-red-600 text-xs">
+                                                    <?php if (!$hasData && !$hasPhoto): ?>
+                                                        ⚠ ไม่มีข้อมูล
+                                                    <?php elseif (!$hasData): ?>
+                                                        ⚠ ไม่มีจำนวน
+                                                    <?php elseif (!$hasPhoto): ?>
+                                                        ⚠ ไม่มีรูป
+                                                    <?php endif; ?>
+                                                </span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -421,39 +493,6 @@ try {
                 button.disabled = false;
             }
         }
-        
-        // Photo modal functions
-        function showPhotoModal(photoPath, materialName) {
-            document.getElementById('photoModalImg').src = photoPath;
-            document.getElementById('photoTitle').textContent = 'รูปภาพ: ' + materialName;
-            document.getElementById('photoModal').classList.remove('hidden');
-        }
-        
-        function closePhotoModal() {
-            document.getElementById('photoModal').classList.add('hidden');
-        }
-        
-        // Close modal on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closePhotoModal();
-            }
-        });
     </script>
-
-    <!-- Photo Modal -->
-    <div id="photoModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center" onclick="closePhotoModal()">
-        <div class="max-w-4xl max-h-full p-4" onclick="event.stopPropagation()">
-            <div class="bg-white rounded-lg overflow-hidden">
-                <div class="p-4 border-b flex justify-between items-center">
-                    <h3 id="photoTitle" class="text-lg font-semibold"></h3>
-                    <button onclick="closePhotoModal()" class="text-gray-500 hover:text-gray-700 text-xl">✕</button>
-                </div>
-                <div class="p-4">
-                    <img id="photoModalImg" src="" alt="" class="max-w-full max-h-96 mx-auto rounded">
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

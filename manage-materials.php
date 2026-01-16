@@ -1,5 +1,9 @@
 <?php
 require_once 'config.php';
+require_once 'auth.php';
+
+// Require admin access
+requireAdmin();
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -253,8 +257,18 @@ if (isset($_GET['edit'])) {
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#C4161C">
     <title>จัดการวัตถุดิบ - Hazel</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    
     <link rel="stylesheet" href="css/style.css">
     <style>
         /* Responsive table - Force smaller sizes */

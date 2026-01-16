@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#C4161C">
+    <title>ออฟไลน์ - Hazel Stock</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #FAF7F2 0%, #f5f5f5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            text-align: center;
+            max-width: 500px;
+            background: white;
+            padding: 3rem 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .offline-icon {
+            font-size: 6rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        h1 {
+            color: #C4161C;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .retry-button {
+            background: linear-gradient(135deg, #C4161C 0%, #A01218 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(196, 22, 28, 0.3);
+        }
+        
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(196, 22, 28, 0.4);
+        }
+        
+        .retry-button:active {
+            transform: translateY(0);
+        }
+        
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #f0f0f0;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #666;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ef4444;
+            margin-right: 0.5rem;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        .tips {
+            margin-top: 2rem;
+            text-align: left;
+            background: #fef3c7;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .tips h3 {
+            color: #92400e;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .tips ul {
+            list-style: none;
+            color: #78350f;
+            font-size: 0.875rem;
+        }
+        
+        .tips li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .tips li:before {
+            content: "•";
+            position: absolute;
+            left: 0.5rem;
+            color: #f59e0b;
+            font-weight: bold;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #C4161C 0%, #8B0000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="logo">H</div>
+        
+        <div class="offline-icon">📡</div>
+        
+        <h1>ไม่มีการเชื่อมต่ออินเทอร์เน็ต</h1>
+        
+        <p>
+            ขออภัย ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ในขณะนี้<br>
+            กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตของคุณ
+        </p>
+        
+        <button class="retry-button" onclick="location.reload()">
+            🔄 ลองอีกครั้ง
+        </button>
+        
+        <div class="status">
+            <span class="status-indicator"></span>
+            <span id="statusText">กำลังตรวจสอบการเชื่อมต่อ...</span>
+        </div>
+        
+        <div class="tips">
+            <h3>💡 คำแนะนำ</h3>
+            <ul>
+                <li>ตรวจสอบว่าเปิด Wi-Fi หรือ Mobile Data แล้ว</li>
+                <li>ลองเปิดเว็บไซต์อื่นดูว่าอินเทอร์เน็ตทำงานหรือไม่</li>
+                <li>ปิดโหมดเครื่องบิน (ถ้าเปิดอยู่)</li>
+                <li>ลองรีสตาร์ทเราเตอร์ของคุณ</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Check connection status
+        function updateStatus() {
+            const statusText = document.getElementById('statusText');
+            
+            if (navigator.onLine) {
+                statusText.textContent = '✅ เชื่อมต่ออินเทอร์เน็ตแล้ว - กำลังโหลดหน้าใหม่...';
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                statusText.textContent = '❌ ยังไม่มีการเชื่อมต่ออินเทอร์เน็ต';
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        
+        // Check status every 3 seconds
+        setInterval(updateStatus, 3000);
+        
+        // Initial check
+        updateStatus();
+    </script>
+</body>
+</html>
