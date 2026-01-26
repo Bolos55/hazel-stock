@@ -1,153 +1,139 @@
 <?php
 /**
- * Setup PostgreSQL Database for Hazel Stock Management
- * Run this after creating PostgreSQL database on Render
+ * PostgreSQL Database Setup Script
+ * สร้างตารางสำหรับ PostgreSQL บน Render.com
  */
+
+// Enable error display for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 require_once 'config.php';
 
+header('Content-Type: text/plain; charset=utf-8');
+
 try {
+    echo "🚀 Setting up PostgreSQL Database...\n\n";
+    
     $db = Database::getInstance()->getConnection();
+    echo "✅ Database connection successful!\n\n";
     
-    echo "🐘 Setting up PostgreSQL database...\n\n";
-    
-    // 1. Create employees table
-    echo "👥 Creating employees table...\n";
+    // Create employees table
+    echo "📋 Creating employees table...\n";
     $db->exec("
         CREATE TABLE IF NOT EXISTS employees (
             id SERIAL PRIMARY KEY,
-            full_name VARCHAR(255) NOT NULL,
-            first_name VARCHAR(255),
-            last_name VARCHAR(255),
-            employee_name VARCHAR(255) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
             role VARCHAR(50) DEFAULT 'employee',
-            username VARCHAR(255),
-            password VARCHAR(255),
-            is_active BOOLEAN DEFAULT TRUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(full_name),
-            UNIQUE(username)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ");
-    echo "   ✓ Created employees table\n";
+    echo "✅ Employees table created!\n";
     
-    // 2. Create raw_materials table
-    echo "🧪 Creating raw_materials table...\n";
+    // Create raw_materials table
+    echo "📋 Creating raw_materials table...\n";
     $db->exec("
         CREATE TABLE IF NOT EXISTS raw_materials (
             id SERIAL PRIMARY KEY,
-            material_code VARCHAR(50) NOT NULL,
             material_name VARCHAR(255) NOT NULL,
             unit VARCHAR(50) NOT NULL,
-            sub_unit VARCHAR(50),
-            unit_quantity DECIMAL(10,2) DEFAULT 0.00,
-            sub_unit_quantity DECIMAL(10,2) DEFAULT 0.00,
-            current_stock DECIMAL(10,2) DEFAULT 0.00,
+            sub_unit VARCHAR(50) DEFAULT '',
             display_order INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(material_code)
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ");
-    echo "   ✓ Created raw_materials table\n";
+    echo "✅ Raw materials table created!\n";
     
-    // 3. Create daily_stock_records table
-    echo "📊 Creating daily_stock_records table...\n";
+    // Create daily_stock_records table
+    echo "📋 Creating daily_stock_records table...\n";
     $db->exec("
         CREATE TABLE IF NOT EXISTS daily_stock_records (
             id SERIAL PRIMARY KEY,
-            record_date DATE NOT NULL,
-            employee_id INTEGER NOT NULL,
-            employee_name VARCHAR(255),
-            material_id INTEGER NOT NULL,
-            remaining_quantity DECIMAL(10,2) NOT NULL,
-            quantity_main DECIMAL(10,2) DEFAULT 0.00,
-            quantity_sub DECIMAL(10,2) DEFAULT 0.00,
-            photo_path VARCHAR(255),
-            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE,
-            FOREIGN KEY (material_id) REFERENCES raw_materials(id) ON DELETE CASCADE,
-            UNIQUE(record_date, material_id)
+            material_id INTEGER REFERENCES raw_materials(id) ON DELETE CASCADE,
+            employee_id INTEGER REFERENCES employees(id) ON DELETE CASCADE,
+            quantity DECIMAL(10,2) NOT NULL,
+            sub_quantity DECIMAL(10,2) DEFAULT 0,
+            photo_path VARCHAR(500),
+            work_date DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ");
-    echo "   ✓ Created daily_stock_records table\n";
+    echo "✅ Daily stock records table created!\n";
     
-    // 4. Create stock_additions table
-    echo "📦 Creating stock_additions table...\n";
+    // Create stock_additions table
+    echo "📋 Creating stock_additions table...\n";
     $db->exec("
         CREATE TABLE IF NOT EXISTS stock_additions (
             id SERIAL PRIMARY KEY,
-            material_id INTEGER NOT NULL,
-            employee_id INTEGER NOT NULL,
+            material_id INTEGER REFERENCES raw_materials(id) ON DELETE CASCADE,
+            employee_id INTEGER REFERENCES employees(id) ON DELETE CASCADE,
             quantity DECIMAL(10,2) NOT NULL,
-            note VARCHAR(255),
-            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (material_id) REFERENCES raw_materials(id) ON DELETE CASCADE,
-            FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE CASCADE
+            sub_quantity DECIMAL(10,2) DEFAULT 0,
+            note TEXT,
+            work_date DATE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ");
-    echo "   ✓ Created stock_additions table\n";
+    echo "✅ Stock additions table created!\n";
     
-    // 5. Create admin user
-    echo "👑 Creating admin user...\n";
-    $hashedPassword = password_hash('Bossmaha_2003', PASSWORD_DEFAULT);
-    $stmt = $db->prepare("
-        INSERT INTO employees (full_name, first_name, last_name, employee_name, role, username, password) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT (username) DO NOTHING
-    ");
-    $stmt->execute([
-        'ภูริวัฒน์ โภคสวัสดิ์',
-        'ภูริวัฒน์',
-        'โภคสวัสดิ์',
-        'Boss',
-        'admin',
-        'bosszazababa@gmail.com',
-        $hashedPassword
-    ]);
-    echo "   ✓ Created admin user: bosszazababa@gmail.com\n";
+    // Insert admin user if not exists
+    echo "👤 Creating admin user...\n";
+    $stmt = $db->prepare("SELECT COUNT(*) FROM employees WHERE email = ?");
+    $stmt->execute(['bosszazababa@gmail.com']);
     
-    // 6. Insert sample materials
-    echo "🧪 Inserting sample materials...\n";
-    $materials = [
-        ['MILK001', 'นม', 'ถุง', 'ลิตร', 1],
-        ['SUGAR001', 'น้ำตาล', 'ถุง', 'กิโลกรัม', 2],
-        ['COFFEE001', 'กาแฟ', 'ถุง', 'กิโลกรัม', 3],
-        ['TEA001', 'ชา', 'ถุง', 'กิโลกรัม', 4],
-        ['CHOC001', 'ช็อก', 'ถุง', 'กิโลกรัม', 5],
-        ['DARK001', 'ดาร์ก', 'ถุง', 'กิโลกรัม', 6],
-        ['WHITE001', 'ไวท์', 'ถุง', 'กิโลกรัม', 7],
-        ['MILK_CON001', 'นมข้น', 'กระป๋อง', 'มิลลิลิตร', 8],
-        ['SYRUP_OR001', 'ไซรัปส้ม', 'ขวด', 'มิลลิลิตร', 9],
-        ['SYRUP_ST001', 'ไซรัปสตรอว์เบอรี่', 'ขวด', 'มิลลิลิตร', 10],
-        ['SYRUP_MI001', 'ไซรัปมิ้นท์', 'ขวด', 'มิลลิลิตร', 11],
-        ['SYRUP_GO001', 'ไซรัปทอง', 'ขวด', 'มิลลิลิตร', 12],
-        ['WATER001', 'น้ำเปล่า', 'ขวด', 'ลิตร', 13],
-        ['DIP001', 'ดิป', 'ถุง', 'กิโลกรัม', 14]
-    ];
-    
-    $stmt = $db->prepare("
-        INSERT INTO raw_materials (material_code, material_name, unit, sub_unit, display_order) 
-        VALUES (?, ?, ?, ?, ?)
-        ON CONFLICT (material_code) DO NOTHING
-    ");
-    
-    foreach ($materials as $material) {
-        $stmt->execute($material);
+    if ($stmt->fetchColumn() == 0) {
+        $stmt = $db->prepare("
+            INSERT INTO employees (name, email, password, role) 
+            VALUES (?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            'ภูริวัฒน์ โภคสวัสดิ์',
+            'bosszazababa@gmail.com',
+            password_hash('Bossmaha_2003', PASSWORD_DEFAULT),
+            'admin'
+        ]);
+        echo "✅ Admin user created!\n";
+    } else {
+        echo "ℹ️ Admin user already exists!\n";
     }
-    echo "   ✓ Inserted " . count($materials) . " materials\n";
     
-    echo "\n✅ PostgreSQL database setup complete!\n\n";
-    echo "📋 Summary:\n";
-    echo "   - Created all tables\n";
-    echo "   - Created admin user: bosszazababa@gmail.com / Bossmaha_2003\n";
-    echo "   - Inserted sample materials\n\n";
+    // Insert sample materials if table is empty
+    echo "📦 Checking materials...\n";
+    $stmt = $db->query("SELECT COUNT(*) FROM raw_materials");
+    $count = $stmt->fetchColumn();
     
-    echo "🎯 Next steps:\n";
-    echo "   1. Test login at: https://hazel-stock.onrender.com/login.php\n";
-    echo "   2. Username: bosszazababa@gmail.com\n";
-    echo "   3. Password: Bossmaha_2003\n\n";
+    if ($count == 0) {
+        echo "📦 Adding sample materials...\n";
+        $materials = [
+            ['แป้งสาลี', 'กิโลกรัม', 'กรัม', 1],
+            ['น้ำตาล', 'กิโลกรัม', 'กรัม', 2],
+            ['เนื้อหมู', 'กิโลกรัม', 'กรัม', 3],
+            ['ไข่ไก่', 'ฟอง', '', 4],
+            ['น้ำมันพืช', 'ลิตร', 'มิลลิลิตร', 5]
+        ];
+        
+        $stmt = $db->prepare("
+            INSERT INTO raw_materials (material_name, unit, sub_unit, display_order) 
+            VALUES (?, ?, ?, ?)
+        ");
+        
+        foreach ($materials as $material) {
+            $stmt->execute($material);
+        }
+        echo "✅ Sample materials added!\n";
+    } else {
+        echo "ℹ️ Materials already exist ({$count} items)!\n";
+    }
+    
+    echo "\n🎉 Database setup completed successfully!\n";
+    echo "👤 Admin Login: bosszazababa@gmail.com / Bossmaha_2003\n";
     
 } catch (Exception $e) {
     echo "❌ Error: " . $e->getMessage() . "\n";
-    exit(1);
+    echo "📍 File: " . $e->getFile() . "\n";
+    echo "📍 Line: " . $e->getLine() . "\n";
+    echo "📍 Trace: " . $e->getTraceAsString() . "\n";
 }

@@ -1,4 +1,9 @@
 <?php
+// Enable error display for debugging on production
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 require_once '../config.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -40,15 +45,27 @@ try {
     ]);
 
 } catch (Exception $e) {
-    // Handle database connection errors gracefully
+    // Handle database connection errors gracefully with detailed debugging
+    http_response_code(500);
     jsonResponse([
         'success' => false,
         'message' => 'Database connection error',
         'error' => $e->getMessage(),
         'debug' => [
             'file' => __FILE__,
+            'line' => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
             'db_host' => DB_HOST,
-            'db_name' => DB_NAME
+            'db_name' => DB_NAME,
+            'db_user' => DB_USER,
+            'db_port' => DB_PORT,
+            'env_check' => [
+                'DB_HOST' => getenv('DB_HOST') ? 'SET' : 'NOT SET',
+                'DB_NAME' => getenv('DB_NAME') ? 'SET' : 'NOT SET',
+                'DB_USER' => getenv('DB_USER') ? 'SET' : 'NOT SET',
+                'DB_PASS' => getenv('DB_PASS') ? 'SET' : 'NOT SET',
+                'DB_PORT' => getenv('DB_PORT') ? 'SET' : 'NOT SET'
+            ]
         ]
     ], 500);
 }

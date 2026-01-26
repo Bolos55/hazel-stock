@@ -3,6 +3,11 @@
 // config.php (RENDER + AIVEN SAFE)
 // ================================
 
+// Enable error display for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Load environment variables from .env file
 require_once __DIR__ . '/load-env.php';
 
