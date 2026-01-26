@@ -48,6 +48,8 @@
                 align-items: center;
                 gap: 1rem;
                 animation: slideUp 0.3s ease-out;
+                font-family: 'Prompt', 'Sarabun', -apple-system, BlinkMacSystemFont, sans-serif;
+                pointer-events: auto;
             ">
                 <div style="font-size: 2rem;">📱</div>
                 <div style="flex: 1;">
@@ -85,6 +87,12 @@
                         transform: translateX(-50%) translateY(0);
                         opacity: 1;
                     }
+                }
+                #pwa-install-banner {
+                    pointer-events: none;
+                }
+                #pwa-install-banner > div {
+                    pointer-events: auto;
                 }
             </style>
         `;
@@ -208,9 +216,9 @@
         // Store event for later use
         deferredPrompt = e;
         
-        // Show custom install prompt after 3 seconds
+        // Show custom install prompt after 10 seconds
         if (shouldShowPrompt()) {
-            setTimeout(showInstallPrompt, 3000);
+            setTimeout(showInstallPrompt, 10000);
         }
     });
     
@@ -266,7 +274,7 @@
         const isInStandaloneMode = window.navigator.standalone === true;
         
         if (isIOS && !isInStandaloneMode && shouldShowPrompt()) {
-            setTimeout(showInstallPrompt, 5000);
+            setTimeout(showInstallPrompt, 15000);
         }
     });
     
