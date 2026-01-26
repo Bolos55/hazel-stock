@@ -48,14 +48,16 @@ class Database {
             // Check if using PostgreSQL or MySQL
             $isPostgreSQL = (DB_PORT == 5432 || strpos(DB_HOST, 'postgres') !== false);
             
-            if ($isPostgreSQL) {
+            // Try PostgreSQL first, fallback to MySQL if driver not available
+            if ($isPostgreSQL && extension_loaded('pdo_pgsql')) {
                 $dsn = sprintf(
                     "pgsql:host=%s;port=%s;dbname=%s",
                     DB_HOST,
                     DB_PORT,
                     DB_NAME
                 );
-            } else {
+            } elseif (extension_loaded('pdo_mysql')) {
+                // Fallback to MySQL syntax
                 $dsn = sprintf(
                     "mysql:host=%s;port=%s;dbname=%s;charset=%s",
                     DB_HOST,
@@ -63,6 +65,8 @@ class Database {
                     DB_NAME,
                     DB_CHARSET
                 );
+            } else {
+                throw new Exception('Neither PostgreSQL nor MySQL PDO drivers are available. Available extensions: ' . implode(', ', get_loaded_extensions()));
             }
 
             $options = [
@@ -72,7 +76,7 @@ class Database {
             ];
             
             // Add MySQL-specific options only for MySQL
-            if (!$isPostgreSQL) {
+            if (!$isPostgreSQL || !extension_loaded('pdo_pgsql')) {
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
                 $options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
             }
