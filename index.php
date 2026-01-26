@@ -3,7 +3,7 @@ require_once 'config.php';
 require_once 'auth.php';
 require_once 'work-date-helper.php';
 
-// Check if user is logged in as admin
+// Check if user is logged in as admin                                                                                                              
 $isAdmin = isLoggedIn() && isAdmin();
 $loggedInName = isLoggedIn() ? getEmployeeName() : '';
 
