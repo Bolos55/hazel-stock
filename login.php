@@ -16,10 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($username && $password) {
         try {
-            // Check if database connection is available
+            // Check if database connection is available with timeout
+            $startTime = microtime(true);
             $db = Database::getInstance()->getConnection();
+            $connectionTime = microtime(true) - $startTime;
+            
             if (!$db) {
                 throw new Exception('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+            }
+            
+            // Test the connection with a simple query
+            $testQuery = $db->query("SELECT 1");
+            if (!$testQuery) {
+                throw new Exception('การเชื่อมต่อฐานข้อมูลไม่เสถียร');
+            }
+            
+            // Log slow connections (over 3 seconds)
+            if ($connectionTime > 3) {
+                error_log("Slow database connection: " . round($connectionTime, 2) . " seconds");
             }
             
             if (login($username, $password, $db)) {
@@ -31,10 +45,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Exception $e) {
             // More user-friendly error messages
             $errorMsg = $e->getMessage();
-            if (strpos($errorMsg, 'Connection timed out') !== false) {
+            if (strpos($errorMsg, 'Connection timed out') !== false || 
+                strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
                 $error = 'การเชื่อมต่อฐานข้อมูลหมดเวลา กรุณาลองใหม่อีกครั้ง';
-            } elseif (strpos($errorMsg, 'Connection failed') !== false) {
-                $error = 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้ กรุณาติดต่อผู้ดูแลระบบ';
+            } elseif (strpos($errorMsg, 'Connection refused') !== false ||
+                      strpos($errorMsg, 'SQLSTATE[HY000] [2003]') !== false) {
+                $error = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ฐานข้อมูลได้ กรุณาติดต่อผู้ดูแลระบบ';
+            } elseif (strpos($errorMsg, 'Access denied') !== false ||
+                      strpos($errorMsg, 'SQLSTATE[28000]') !== false) {
+                $error = 'ข้อมูลการเข้าถึงฐานข้อมูลไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ';
+            } elseif (strpos($errorMsg, 'Unknown database') !== false ||
+                      strpos($errorMsg, 'SQLSTATE[42000]') !== false) {
+                $error = 'ไม่พบฐานข้อมูลที่ระบุ กรุณาติดต่อผู้ดูแลระบบ';
             } elseif (strpos($errorMsg, 'SQLSTATE') !== false) {
                 $error = 'เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง';
             } else {
@@ -196,6 +218,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="retry-button" onclick="location.reload()">
                             🔄 ลองใหม่อีกครั้ง
                         </button>
+                        <br><br>
+                        <details style="font-size: 0.75rem; color: #6b7280;">
+                            <summary style="cursor: pointer;">ข้อมูลการวินิจฉัย</summary>
+                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f9fafb; border-radius: 0.25rem;">
+                                <strong>การตั้งค่าฐานข้อมูล:</strong><br>
+                                Host: <?php echo htmlspecialchars(DB_HOST); ?><br>
+                                Port: <?php echo htmlspecialchars(DB_PORT); ?><br>
+                                Database: <?php echo htmlspecialchars(DB_NAME); ?><br>
+                                User: <?php echo htmlspecialchars(DB_USER); ?><br>
+                                <br>
+                                <strong>เวลา:</strong> <?php echo date('Y-m-d H:i:s'); ?><br>
+                                <strong>PHP Version:</strong> <?php echo PHP_VERSION; ?>
+                            </div>
+                        </details>
                     <?php endif; ?>
                 </div>
             <?php endif; ?>
