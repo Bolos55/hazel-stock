@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: hazel-stock
+    env: php
+    buildCommand: |
+      composer install --no-dev --optimize-autoloader
+      apt-get update && apt-get install -y php-pgsql
+    startCommand: apache2-foreground
+    envVars:
+      - key: PHP_EXTENSIONS
+        value: pdo,pdo_pgsql,pgsql
