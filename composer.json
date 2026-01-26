@@ -1,0 +1,16 @@
+{
+    "name": "hazel-stock/app",
+    "description": "Hazel Stock Management System",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "ext-pgsql": "*",
+        "ext-pdo_pgsql": "*"
+    },
+    "config": {
+        "platform": {
+            "php": "8.1"
+        }
+    }
+}
