@@ -81,7 +81,11 @@ class Database {
             if (!$isPostgreSQL || !extension_loaded('pdo_pgsql')) {
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
                 $options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
-                $options[PDO::MYSQL_ATTR_CONNECT_TIMEOUT] = 10; // MySQL specific timeout
+                
+                // Only add MySQL connect timeout if the constant exists
+                if (defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')) {
+                    $options[PDO::MYSQL_ATTR_CONNECT_TIMEOUT] = 10;
+                }
             }
 
             // Retry connection up to 3 times
