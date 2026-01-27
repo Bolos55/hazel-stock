@@ -1,6 +1,6 @@
 <?php
-require_once '../config.php';
-require_once '../work-date-helper.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../work-date-helper.php';
 
 try {
     $db = Database::getInstance()->getConnection();

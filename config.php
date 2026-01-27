@@ -72,16 +72,46 @@ class Database {
             $options = [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                PDO::ATTR_EMULATE_PREPARES => false
+                PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_TIMEOUT => 10, // 10 second timeout
+                PDO::ATTR_PERSISTENT => false // Disable persistent connections
             ];
             
             // Add MySQL-specific options only for MySQL
             if (!$isPostgreSQL || !extension_loaded('pdo_pgsql')) {
                 $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
                 $options[PDO::MYSQL_ATTR_INIT_COMMAND] = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci";
+                
+                // Only add MySQL connect timeout if the constant exists
+                if (defined('PDO::MYSQL_ATTR_CONNECT_TIMEOUT')) {
+                    $options[PDO::MYSQL_ATTR_CONNECT_TIMEOUT] = 10;
+                }
             }
 
-            $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
+            // Retry connection up to 3 times
+            $maxRetries = 3;
+            $retryCount = 0;
+            $lastException = null;
+            
+            while ($retryCount < $maxRetries) {
+                try {
+                    $this->conn = new PDO($dsn, DB_USER, DB_PASS, $options);
+                    break; // Success, exit retry loop
+                } catch (PDOException $e) {
+                    $lastException = $e;
+                    $retryCount++;
+                    
+                    if ($retryCount < $maxRetries) {
+                        // Wait 1 second before retry
+                        sleep(1);
+                    }
+                }
+            }
+            
+            // If all retries failed, throw the last exception
+            if ($retryCount >= $maxRetries && $lastException) {
+                throw $lastException;
+            }
 
         } catch (PDOException $e) {
             throw new Exception('DB Connection failed: ' . $e->getMessage());

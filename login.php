@@ -16,7 +16,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($username && $password) {
         try {
+            // Check if database connection is available with timeout
+            $startTime = microtime(true);
             $db = Database::getInstance()->getConnection();
+            $connectionTime = microtime(true) - $startTime;
+            
+            if (!$db) {
+                throw new Exception('ไม่สามารถเชื่อมต่อฐานข้อมูลได้');
+            }
+            
+            // Test the connection with a simple query
+            $testQuery = $db->query("SELECT 1");
+            if (!$testQuery) {
+                throw new Exception('การเชื่อมต่อฐานข้อมูลไม่เสถียร');
+            }
+            
+            // Log slow connections (over 3 seconds)
+            if ($connectionTime > 3) {
+                error_log("Slow database connection: " . round($connectionTime, 2) . " seconds");
+            }
+            
             if (login($username, $password, $db)) {
                 header('Location: index.php');
                 exit;
@@ -24,7 +43,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง';
             }
         } catch (Exception $e) {
-            $error = 'เกิดข้อผิดพลาด: ' . $e->getMessage();
+            // More user-friendly error messages
+            $errorMsg = $e->getMessage();
+            if (strpos($errorMsg, 'Connection timed out') !== false || 
+                strpos($errorMsg, 'SQLSTATE[HY000] [2002]') !== false) {
+                $error = 'การเชื่อมต่อฐานข้อมูลหมดเวลา กรุณาลองใหม่อีกครั้ง';
+            } elseif (strpos($errorMsg, 'Connection refused') !== false ||
+                      strpos($errorMsg, 'SQLSTATE[HY000] [2003]') !== false) {
+                $error = 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ฐานข้อมูลได้ กรุณาติดต่อผู้ดูแลระบบ';
+            } elseif (strpos($errorMsg, 'Access denied') !== false ||
+                      strpos($errorMsg, 'SQLSTATE[28000]') !== false) {
+                $error = 'ข้อมูลการเข้าถึงฐานข้อมูลไม่ถูกต้อง กรุณาติดต่อผู้ดูแลระบบ';
+            } elseif (strpos($errorMsg, 'Unknown database') !== false ||
+                      strpos($errorMsg, 'SQLSTATE[42000]') !== false) {
+                $error = 'ไม่พบฐานข้อมูลที่ระบุ กรุณาติดต่อผู้ดูแลระบบ';
+            } elseif (strpos($errorMsg, 'SQLSTATE') !== false) {
+                $error = 'เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล กรุณาลองใหม่อีกครั้ง';
+            } else {
+                $error = 'เกิดข้อผิดพลาด: ' . $errorMsg;
+            }
         }
     } else {
         $error = 'กรุณากรอกชื่อผู้ใช้และรหัสผ่าน';
@@ -148,6 +185,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-radius: 0.5rem;
             margin-bottom: 1rem;
             font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        .retry-button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .retry-button:hover {
+            background: #b91c1c;
         }
     </style>
 </head>
@@ -161,6 +213,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php if ($error): ?>
                 <div class="error-message">
                     <?php echo htmlspecialchars($error); ?>
+                    <?php if (strpos($error, 'ฐานข้อมูล') !== false): ?>
+                        <br>
+                        <button type="button" class="retry-button" onclick="location.reload()">
+                            🔄 ลองใหม่อีกครั้ง
+                        </button>
+                        <br><br>
+                        <details style="font-size: 0.75rem; color: #6b7280;">
+                            <summary style="cursor: pointer;">ข้อมูลการวินิจฉัย</summary>
+                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f9fafb; border-radius: 0.25rem;">
+                                <strong>การตั้งค่าฐานข้อมูล:</strong><br>
+                                Host: <?php echo htmlspecialchars(DB_HOST); ?><br>
+                                Port: <?php echo htmlspecialchars(DB_PORT); ?><br>
+                                Database: <?php echo htmlspecialchars(DB_NAME); ?><br>
+                                User: <?php echo htmlspecialchars(DB_USER); ?><br>
+                                <br>
+                                <strong>เวลา:</strong> <?php echo date('Y-m-d H:i:s'); ?><br>
+                                <strong>PHP Version:</strong> <?php echo PHP_VERSION; ?>
+                            </div>
+                        </details>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
             
@@ -187,7 +259,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            autocomplete="current-password">
                 </div>
                 
-                <button type="submit" class="btn-login">🔐 เข้าสู่ระบบ</button>
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <span id="loginText">🔐 เข้าสู่ระบบ</span>
+                    <span id="loginSpinner" style="display: none;">⏳ กำลังเข้าสู่ระบบ...</span>
+                </button>
                 <a href="index.php" class="btn-back" style="display: block; text-align: center; text-decoration: none;">← กลับหน้าหลัก</a>
             </form>
             
@@ -233,6 +308,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     <!-- PWA Install Script -->
     <script>
+        // Login form handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginText = document.getElementById('loginText');
+            const loginSpinner = document.getElementById('loginSpinner');
+            
+            form.addEventListener('submit', function() {
+                loginBtn.disabled = true;
+                loginText.style.display = 'none';
+                loginSpinner.style.display = 'inline';
+                
+                // Re-enable after 10 seconds as fallback
+                setTimeout(() => {
+                    loginBtn.disabled = false;
+                    loginText.style.display = 'inline';
+                    loginSpinner.style.display = 'none';
+                }, 10000);
+            });
+        });
+        
         let deferredPrompt;
         
         // Check if already installed
