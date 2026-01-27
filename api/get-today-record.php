@@ -1,8 +1,18 @@
 <?php
-require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../work-date-helper.php';
-
+// Set content type first
 header('Content-Type: application/json; charset=utf-8');
+
+try {
+    require_once __DIR__ . '/../config.php';
+    require_once __DIR__ . '/../work-date-helper.php';
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Config file error: ' . $e->getMessage()
+    ]);
+    exit;
+}
 
 try {
     // Try to get database connection
@@ -20,24 +30,25 @@ try {
 
     $result = $stmt->fetch();
 
-    jsonResponse([
+    echo json_encode([
         'success' => true,
         'date' => $today,
         'has_records' => $result['total'] > 0,
         'total_records' => (int)$result['total']
-    ]);
+    ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {
     // Handle database connection errors gracefully
-    jsonResponse([
+    http_response_code(500);
+    echo json_encode([
         'success' => false,
         'message' => 'Database connection error',
         'error' => $e->getMessage(),
         'debug' => [
             'file' => __FILE__,
             'line' => __LINE__,
-            'db_host' => DB_HOST,
-            'db_name' => DB_NAME
+            'db_host' => defined('DB_HOST') ? DB_HOST : 'NOT DEFINED',
+            'db_name' => defined('DB_NAME') ? DB_NAME : 'NOT DEFINED'
         ]
-    ], 500);
+    ], JSON_UNESCAPED_UNICODE);
 }
